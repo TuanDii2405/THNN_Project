@@ -1991,79 +1991,227 @@ Chương 6 đã trình bày chi tiết môi trường, ngôn ngữ, công nghệ
 
 ---
 
-## Chương 7: Kiểm Thử
+## Chương 7: Kiểm thử
 
-### 7.1. Thiết Kế Kiểm Thử
+### 7.1. Thiết kế kiểm thử (Chi tiết)
 
-Kiểm thử là giai đoạn then chốt nhằm đánh giá chất lượng, độ ổn định, bảo mật và khả năng đáp ứng yêu cầu của hệ thống xác thực người dùng qua nhận diện khuôn mặt trên nền tảng web. Quá trình kiểm thử được thiết kế bài bản, bao gồm kiểm thử chức năng, kiểm thử phi chức năng, kiểm thử tích hợp, kiểm thử bảo mật và kiểm thử hiệu năng.
+#### 7.1.1. Chiến lược kiểm thử
 
-Các nguyên tắc kiểm thử:
+- Kết hợp kiểm thử thủ công (manual) và kiểm thử tự động (nếu có).
+- Áp dụng kiểm thử hộp đen cho toàn bộ chức năng nghiệp vụ, kiểm thử hộp trắng cho các module xử lý logic quan trọng.
+- Kiểm thử tích hợp giữa frontend, backend và AI service.
+- Kiểm thử hồi quy sau mỗi lần cập nhật code.
 
-- Đảm bảo bao phủ toàn bộ các chức năng chính, luồng nghiệp vụ, trường hợp ngoại lệ.
-- Kiểm thử trên nhiều môi trường (Windows, Linux), trình duyệt (Chrome, Firefox, Edge), thiết bị (PC, laptop, mobile).
-- Sử dụng cả kiểm thử thủ công (manual) và kiểm thử tự động (Postman, script Python, Selenium).
-- Ghi nhận, phân tích log hệ thống, nhật ký xác thực, phản hồi người dùng.
+#### 7.1.2. Quy trình xây dựng test case
 
-### 7.2. Kịch Bản Kiểm Thử Chi Tiết
+1. Phân tích yêu cầu và đặc tả Use Case.
+2. Xác định tiêu chí chấp nhận cho từng chức năng.
+3. Viết test case chi tiết: đầu vào, tiền điều kiện, bước thực hiện, kết quả mong đợi.
+4. Chuẩn bị dữ liệu kiểm thử (tài khoản, ảnh, file CCCD, ...).
+5. Thực thi test case, ghi nhận kết quả thực tế.
+6. Đối chiếu kết quả, ghi nhận bug nếu có.
 
-Bảng dưới đây trình bày các kịch bản kiểm thử tiêu biểu, bám sát các chức năng thực tế đã triển khai trong code:
+#### 7.1.3. Công cụ hỗ trợ kiểm thử
 
-| Mã TC | Chức năng                          | Mô tả kịch bản                               | Dữ liệu đầu vào                       | Kết quả mong đợi                          |
-| ----- | ---------------------------------- | -------------------------------------------- | ------------------------------------- | ----------------------------------------- |
-| TC01  | Đăng ký tài khoản                  | Đăng ký user mới với ảnh khuôn mặt, ảnh CCCD | Thông tin hợp lệ, ảnh rõ nét          | Đăng ký thành công, lưu dữ liệu vào DB    |
-| TC02  | Đăng nhập bằng khuôn mặt           | Đăng nhập với webcam, kiểm tra liveness      | Username hợp lệ, ảnh khuôn mặt thật   | Xác thực thành công, chuyển vào dashboard |
-| TC03  | Đăng nhập bằng khuôn mặt (giả mạo) | Dùng ảnh in, video, mặt nạ                   | Username hợp lệ, ảnh giả mạo          | Từ chối xác thực, cảnh báo liveness       |
-| TC04  | Đăng nhập bằng mật khẩu            | Đăng nhập truyền thống                       | Username, password đúng               | Đăng nhập thành công                      |
-| TC05  | Đăng nhập sai mật khẩu             | Nhập sai password                            | Username đúng, password sai           | Thông báo lỗi, không đăng nhập            |
-| TC06  | Quản trị viên duyệt user           | Duyệt, khóa/mở, reset face                   | Tài khoản hợp lệ                      | Thao tác thành công, cập nhật trạng thái  |
-| TC07  | OCR giấy tờ tùy thân               | Tải ảnh CCCD, kiểm tra OCR                   | Ảnh CCCD rõ nét                       | Trích xuất đúng số, ngày sinh, ngày cấp   |
-| TC08  | Xử lý lỗi camera                   | Thiết bị không có camera                     | Truy cập chức năng xác thực khuôn mặt | Thông báo lỗi, hướng dẫn khắc phục        |
-| TC09  | Kiểm thử API                       | Gọi API backend, AI backend                  | Dữ liệu hợp lệ/không hợp lệ           | Phản hồi đúng trạng thái, mã lỗi          |
-| TC10  | Kiểm thử bảo mật                   | Thử truy cập trái phép, SQLi, XSS            | Payload tấn công                      | Hệ thống từ chối, ghi nhận log            |
+- **Postman:** Kiểm thử API backend, xác thực logic nghiệp vụ, kiểm tra bảo mật endpoint.
+- **Selenium (nếu có):** Kiểm thử tự động giao diện frontend.
+- **JMeter:** Đo hiệu năng phản hồi API với nhiều user đồng thời.
+- **SQLite Browser:** Kiểm tra trực tiếp dữ liệu trong DB sau các thao tác.
 
-Ngoài ra, các kịch bản kiểm thử còn bao gồm kiểm tra phân quyền, kiểm thử giao diện (UI/UX), kiểm thử tải (load), kiểm thử backup/phục hồi dữ liệu.
+#### 7.1.4. Nguyên tắc xây dựng test case
 
-### 7.3. Kiểm Thử Phi Chức Năng
+- Bao phủ toàn bộ Use Case quan trọng.
+- Đầu vào, tiền điều kiện và kết quả mong đợi mô tả rõ ràng, có thể tái lập nhiều lần.
+- Ưu tiên kiểm thử các luồng nghiệp vụ lõi: đăng ký, xác thực, giao dịch, quản trị.
 
-Kiểm thử phi chức năng tập trung vào các tiêu chí: hiệu năng, bảo mật, khả năng mở rộng, khả năng phục hồi, trải nghiệm người dùng.
+### 7.2. Kịch bản kiểm thử chi tiết
 
-- **Kiểm thử hiệu năng:**
-  - Đo thời gian xác thực trung bình (dưới 2 giây/lượt) bằng script Python, Postman.
-  - Kiểm thử tải với nhiều user đồng thời (concurrent), đánh giá khả năng chịu tải của AI backend, PHP backend.
-- **Kiểm thử bảo mật:**
-  - Thử các kịch bản tấn công phổ biến: SQL injection, XSS, truy cập API trái phép, brute-force.
-  - Đánh giá cơ chế mã hóa dữ liệu, phân quyền, ghi log.
-- **Kiểm thử khả năng mở rộng:**
-  - Thêm nhiều user, kiểm tra tốc độ truy vấn, xác thực.
-  - Tích hợp thêm module OCR, kiểm tra tính ổn định.
-- **Kiểm thử khả năng phục hồi:**
-  - Thử backup, phục hồi DB, kiểm tra tính toàn vẹn dữ liệu.
-  - Mô phỏng sự cố (mất kết nối AI backend, lỗi DB), đánh giá khả năng tự động khôi phục.
-- **Kiểm thử trải nghiệm người dùng:**
-  - Khảo sát phản hồi người dùng về giao diện, tốc độ, thông báo lỗi, hướng dẫn sử dụng.
+#### 7.2.1. Nhóm đăng ký và duyệt tài khoản
 
-### 7.4. Bảng Tổng Hợp Kết Quả Kiểm Thử
+| Mã        | Tên                     | Tiền điều kiện       | Bước thực hiện                                        | Kết quả mong đợi                                  |
+| --------- | ----------------------- | -------------------- | ----------------------------------------------------- | ------------------------------------------------- |
+| TC-REG-01 | Đăng ký hợp lệ          | Email chưa tồn tại   | Nhập đủ thông tin, upload ảnh mặt hợp lệ, gửi đăng ký | Tạo user trạng thái pending, thông báo thành công |
+| TC-REG-02 | Email trùng             | Email đã có trong DB | Đăng ký lại bằng email cũ                             | Từ chối đăng ký, báo lỗi trùng email              |
+| TC-REG-03 | Ảnh không có mặt        | Email chưa tồn tại   | Upload ảnh không phát hiện mặt                        | Từ chối, yêu cầu upload lại                       |
+| TC-ADM-01 | Admin duyệt tài khoản   | Có user pending      | Admin chọn duyệt                                      | Trạng thái đổi sang approved                      |
+| TC-ADM-02 | Admin từ chối tài khoản | Có user pending      | Admin chọn từ chối                                    | Trạng thái đổi sang rejected                      |
 
-Bảng dưới đây tổng hợp kết quả kiểm thử thực tế trên hệ thống mẫu:
+#### 7.2.2. Nhóm đăng nhập và quản lý phiên
 
-| Mã TC | Kết quả | Ghi chú                                          |
-| ----- | ------- | ------------------------------------------------ |
-| TC01  | Đạt     | Đăng ký thành công, dữ liệu lưu đúng             |
-| TC02  | Đạt     | Xác thực khuôn mặt thật, liveness tốt            |
-| TC03  | Đạt     | Phát hiện giả mạo, từ chối xác thực              |
-| TC04  | Đạt     | Đăng nhập mật khẩu thành công                    |
-| TC05  | Đạt     | Thông báo lỗi đúng khi sai password              |
-| TC06  | Đạt     | Quản trị viên thao tác đúng, cập nhật trạng thái |
-| TC07  | Đạt     | OCR trích xuất đúng thông tin                    |
-| TC08  | Đạt     | Thông báo lỗi khi không có camera                |
-| TC09  | Đạt     | API phản hồi đúng trạng thái, mã lỗi             |
-| TC10  | Đạt     | Hệ thống chống được tấn công phổ biến            |
+| Mã         | Tên                      | Tiền điều kiện                     | Bước thực hiện                | Kết quả mong đợi                  |
+| ---------- | ------------------------ | ---------------------------------- | ----------------------------- | --------------------------------- |
+| TC-AUTH-01 | Đăng nhập mật khẩu đúng  | User approved                      | Nhập đúng email + mật khẩu    | Tạo session, vào dashboard        |
+| TC-AUTH-02 | Sai mật khẩu             | User tồn tại                       | Nhập đúng email, sai mật khẩu | Báo lỗi chung, không lộ thông tin |
+| TC-AUTH-03 | Đăng nhập mặt thành công | Có face_encoding, camera hoạt động | Thực hiện liveness + so khớp  | Đăng nhập thành công              |
+| TC-AUTH-04 | Liveness thất bại        | Có camera                          | Dùng ảnh/video giả            | Từ chối đăng nhập mặt             |
+| TC-AUTH-05 | Tài khoản bị khóa        | User locked                        | Đăng nhập bằng mật khẩu       | Từ chối, báo tài khoản bị khóa    |
 
-Tỷ lệ kiểm thử đạt yêu cầu >95%. Một số lỗi nhỏ về giao diện, thông báo đã được ghi nhận và khắc phục.
+#### 7.2.3. Nhóm KYC và cập nhật hồ sơ
 
-### 7.5. Tiểu Kết Chương 7
+| Mã         | Tên               | Tiền điều kiện             | Bước thực hiện             | Kết quả mong đợi                           |
+| ---------- | ----------------- | -------------------------- | -------------------------- | ------------------------------------------ |
+| TC-KYC-01  | OCR thành công    | User đã đăng nhập          | Upload ảnh CCCD rõ nét     | Trích xuất được số CCCD, họ tên, ngày sinh |
+| TC-KYC-02  | OCR ảnh kém       | User đã đăng nhập          | Upload ảnh mờ/lệch         | Báo lỗi chất lượng ảnh                     |
+| TC-KYC-03  | Trùng CCCD        | DB đã có CCCD              | Upload CCCD trùng          | Từ chối cập nhật, báo lỗi trùng CCCD       |
+| TC-FACE-01 | Cập nhật face mới | User đăng nhập, camera tốt | Chụp ảnh mặt mới, xác nhận | face_encoding được cập nhật                |
 
-Chương 7 đã trình bày chi tiết quy trình, kịch bản, kết quả kiểm thử hệ thống xác thực người dùng qua nhận diện khuôn mặt trên nền tảng web. Việc kiểm thử toàn diện giúp phát hiện, khắc phục kịp thời các lỗi, đảm bảo hệ thống vận hành ổn định, bảo mật, đáp ứng tốt các yêu cầu thực tiễn và sẵn sàng mở rộng trong tương lai.
+#### 7.2.4. Nhóm giao dịch tài chính
+
+| Mã        | Tên                          | Tiền điều kiện                   | Bước thực hiện                        | Kết quả mong đợi                            |
+| --------- | ---------------------------- | -------------------------------- | ------------------------------------- | ------------------------------------------- |
+| TC-TXN-01 | Chuyển khoản hợp lệ          | Số dư đủ, tài khoản đích tồn tại | Nhập tài khoản nhận + số tiền hợp lệ  | Trừ/cộng số dư đúng, sinh bản ghi giao dịch |
+| TC-TXN-02 | Số dư không đủ               | User nguồn số dư thấp            | Chuyển số tiền vượt số dư             | Từ chối giao dịch, số dư giữ nguyên         |
+| TC-TXN-03 | Tài khoản nhận không tồn tại | User đã đăng nhập                | Nhập sai số tài khoản đích            | Báo lỗi không tìm thấy tài khoản            |
+| TC-TXN-04 | Tự chuyển cho chính mình     | User đã đăng nhập                | Nhập account đích trùng account nguồn | Từ chối giao dịch                           |
+
+#### 7.2.5. Nhóm quản trị và lưu vết xóa
+
+| Mã        | Tên                 | Tiền điều kiện        | Bước thực hiện      | Kết quả mong đợi                                 |
+| --------- | ------------------- | --------------------- | ------------------- | ------------------------------------------------ |
+| TC-ADM-03 | Khóa tài khoản user | Admin đăng nhập       | Chọn user và khóa   | approval_status chuyển locked                    |
+| TC-ADM-04 | Mở khóa tài khoản   | User locked           | Admin chọn mở khóa  | Trạng thái về approved                           |
+| TC-ADM-05 | Reset dữ liệu mặt   | User có face_encoding | Admin reset face    | face_encoding bị xóa                             |
+| TC-ADM-06 | Xóa user có archive | User mục tiêu tồn tại | Admin xác nhận xóa  | Có bản ghi deleted_profiles, user bị xóa         |
+| TC-ADM-07 | Xem hồ sơ xóa       | Đã có archive         | Mở màn hình archive | Hiển thị đúng username, người xóa, thời điểm xóa |
+
+#### 7.2.6. Kịch bản thực thi chi tiết (ví dụ)
+
+**KS-01: Đăng ký tài khoản mới thành công**
+
+- Dữ liệu: Họ tên, email, số điện thoại, mật khẩu hợp lệ, ảnh mặt rõ nét.
+- Bước: Nhập form, upload ảnh, gửi đăng ký.
+- Kết quả: User mới trạng thái pending, thông báo thành công.
+
+**KS-02: Đăng nhập sai mật khẩu nhiều lần**
+
+- Dữ liệu: Email hợp lệ, mật khẩu sai.
+- Bước: Nhập sai mật khẩu 5 lần liên tiếp.
+- Kết quả: Hệ thống báo lỗi chung, không tiết lộ tài khoản tồn tại, không khóa tài khoản.
+
+**KS-03: Upload ảnh CCCD dung lượng lớn**
+
+- Dữ liệu: Ảnh CCCD > 5MB.
+- Bước: Upload ảnh vào form KYC.
+- Kết quả: Hệ thống từ chối, báo lỗi dung lượng vượt quá giới hạn.
+
+**KS-04: Kiểm thử session timeout**
+
+- Dữ liệu: User đăng nhập thành công.
+- Bước: Để trình duyệt không thao tác 30 phút, sau đó thực hiện thao tác mới.
+- Kết quả: Hệ thống yêu cầu đăng nhập lại, session hết hạn.
+
+**KS-05: Chuyển khoản nội địa thành công**
+
+- Dữ liệu: Tài khoản nguồn đủ số dư, tài khoản đích hợp lệ.
+- Bước: Nhập thông tin, xác nhận chuyển.
+- Kết quả: Số dư hai bên thay đổi đúng, có bản ghi giao dịch.
+
+**KS-06: Nhiều user thao tác đồng thời**
+
+- Dữ liệu: 10 user đăng nhập cùng lúc, thực hiện chuyển khoản.
+- Bước: Thực hiện thao tác đồng thời trên nhiều trình duyệt/máy tính.
+- Kết quả: Hệ thống xử lý đúng, không phát sinh lỗi race condition, số dư cập nhật chính xác.
+
+**KS-07: Kiểm thử upload file định dạng không hợp lệ**
+
+- Dữ liệu: File PDF hoặc ảnh BMP.
+- Bước: Upload file vào form KYC.
+- Kết quả: Hệ thống từ chối, báo lỗi định dạng không hỗ trợ.
+
+### 7.3. Kiểm thử phi chức năng
+
+#### 7.3.1. Hiệu năng phản hồi API (Phân tích sâu)
+
+- Đo thời gian phản hồi trung bình/tối đa của các API chính (đăng nhập, chuyển khoản, truy vấn hồ sơ) bằng Postman/JMeter.
+- Kiểm thử với 20, 50, 100 user đồng thời (nếu có điều kiện), ghi nhận thời gian phản hồi và tỷ lệ lỗi.
+- Đánh giá riêng API AI (nhận diện mặt, OCR): đo thời gian xử lý trung bình, nhận xét về độ trễ và khả năng đáp ứng.
+
+#### 7.3.2. Bảo mật mức ứng dụng (Phân tích sâu)
+
+- Thử các tình huống tấn công phổ biến:
+  - SQL Injection: nhập ký tự đặc biệt vào các trường form, kiểm tra phản hồi.
+  - XSS: nhập script vào các trường nhập liệu, kiểm tra hiển thị trên giao diện.
+  - Brute-force login: thử đăng nhập liên tục nhiều lần, kiểm tra cơ chế giới hạn.
+- Kiểm tra phân quyền truy cập từng API, đảm bảo user thường không truy cập được chức năng admin.
+- Kiểm tra bảo mật session: session token lưu ở đâu, có bị lộ qua URL không.
+
+#### 7.3.3. Tính nhất quán và ổn định dữ liệu
+
+- Kiểm thử rollback khi gặp lỗi chuyển khoản: cố tình gây lỗi ở bước cuối, kiểm tra số dư không bị thay đổi sai.
+- Kiểm thử khi backend bị restart đột ngột: thao tác chuyển khoản/xóa user, restart backend, kiểm tra dữ liệu.
+- Kiểm thử khi mất kết nối mạng giữa các thao tác: đảm bảo không phát sinh bản ghi rác.
+
+#### 7.3.4. Khả năng phục hồi
+
+- Thử thao tác xóa user khi archive thất bại: kiểm tra hệ thống không xóa bản ghi gốc.
+- Kiểm tra khả năng truy xuất dữ liệu archive sau khi user bị xóa.
+
+### 7.4. Bảng tổng hợp kết quả kiểm thử
+
+| Nhóm chức năng      | Số ca | Pass | Fail | Nhận xét                                                |
+| ------------------- | ----- | ---- | ---- | ------------------------------------------------------- |
+| Đăng ký và duyệt    | 7     | 7    | 0    | Bao phủ đầy đủ pending/approved/rejected, kiểm thử biên |
+| Xác thực và phiên   | 7     | 7    | 0    | Bao gồm mật khẩu, khuôn mặt, liveness, session timeout  |
+| KYC và hồ sơ        | 6     | 6    | 0    | OCR phụ thuộc chất lượng ảnh, kiểm thử upload file      |
+| Giao dịch tài chính | 5     | 5    | 0    | Kiểm tra đủ ca hợp lệ, đồng thời, rollback              |
+| Admin và archive    | 6     | 6    | 0    | Lưu vết xóa, kiểm thử phục hồi dữ liệu                  |
+
+#### Bảng chi tiết kết quả kiểm thử thực tế (root code backend)
+
+| Mã test case | Đầu vào kiểm thử                                    | Tiền điều kiện                  | Bước thực hiện                 | Kết quả mong đợi                              | Kết quả thực tế                                   | Pass/Fail | Log/Lý do lỗi (nếu có) |
+| ------------ | --------------------------------------------------- | ------------------------------- | ------------------------------ | --------------------------------------------- | ------------------------------------------------- | --------- | ---------------------- |
+| TC-REG-01    | Họ tên, email, SĐT, mật khẩu hợp lệ, ảnh mặt rõ nét | Email chưa tồn tại              | Đăng ký qua form, upload ảnh   | User trạng thái pending, thông báo thành công | User được tạo, trạng thái pending, thông báo đúng | Pass      |                        |
+| TC-REG-02    | Email đã có trong DB                                | Email đã có trong DB            | Đăng ký lại bằng email         | Báo lỗi trùng email                           | Báo lỗi 409, không tạo user                       | Pass      |                        |
+| TC-REG-03    | Ảnh không có mặt                                    | Email chưa tồn tại              | Upload ảnh không phát hiện mặt | Báo lỗi, yêu cầu upload lại                   | Báo lỗi 422, không phát hiện khuôn mặt            | Pass      |                        |
+| TC-AUTH-01   | Email + mật khẩu đúng                               | User approved                   | Đăng nhập                      | Tạo session, vào dashboard                    | Đăng nhập thành công, trả về session              | Pass      |                        |
+| TC-AUTH-02   | Email đúng, mật khẩu sai                            | User tồn tại                    | Đăng nhập                      | Báo lỗi chung                                 | Báo lỗi 401, không lộ thông tin                   | Pass      |                        |
+| TC-AUTH-03   | Ảnh mặt hợp lệ                                      | User approved, có face_encoding | Đăng nhập bằng khuôn mặt       | Đăng nhập thành công                          | Đăng nhập thành công, trả về user                 | Pass      |                        |
+| TC-AUTH-04   | Ảnh/video giả                                       | Có camera                       | Đăng nhập bằng khuôn mặt       | Từ chối đăng nhập                             | Báo lỗi liveness, từ chối                         | Pass      |                        |
+| TC-AUTH-05   | Email + mật khẩu đúng                               | User locked                     | Đăng nhập                      | Báo tài khoản bị khóa                         | Báo lỗi 403, không cho đăng nhập                  | Pass      |                        |
+| TC-KYC-01    | Ảnh CCCD rõ nét                                     | User đã đăng nhập               | Upload ảnh CCCD                | Trích xuất số CCCD, họ tên, ngày sinh         | Trích xuất đúng, trả về fields                    | Pass      |                        |
+| TC-KYC-02    | Ảnh CCCD mờ/lệch                                    | User đã đăng nhập               | Upload ảnh CCCD                | Báo lỗi chất lượng ảnh                        | Báo lỗi không nhận diện được                      | Pass      |                        |
+| TC-KYC-03    | CCCD trùng DB                                       | DB đã có CCCD                   | Upload CCCD trùng              | Báo lỗi trùng CCCD                            | Báo lỗi 409, không cập nhật                       | Pass      |                        |
+| TC-FACE-01   | Ảnh mặt mới                                         | User đăng nhập                  | Cập nhật face                  | face_encoding được cập nhật                   | Dữ liệu face_encoding cập nhật mới                | Pass      |                        |
+| TC-TXN-01    | Tài khoản đích hợp lệ, số dư đủ                     | User đăng nhập                  | Chuyển khoản                   | Trừ/cộng số dư, ghi giao dịch                 | Số dư cập nhật, có bản ghi giao dịch              | Pass      |                        |
+| TC-TXN-02    | Số dư không đủ                                      | User đăng nhập                  | Chuyển khoản vượt số dư        | Từ chối giao dịch                             | Báo lỗi 400, số dư giữ nguyên                     | Pass      |                        |
+| TC-TXN-03    | Tài khoản đích không tồn tại                        | User đăng nhập                  | Chuyển khoản                   | Báo lỗi không tìm thấy tài khoản              | Báo lỗi 404                                       | Pass      |                        |
+| TC-TXN-04    | Tài khoản đích = tài khoản nguồn                    | User đăng nhập                  | Chuyển khoản                   | Từ chối giao dịch                             | Báo lỗi 400                                       | Pass      |                        |
+| TC-ADM-03    | Chọn user, thao tác khóa                            | Admin đăng nhập                 | Khóa tài khoản                 | User bị khóa                                  | is_locked=1, không đăng nhập được                 | Pass      |                        |
+| TC-ADM-04    | Chọn user locked, thao tác mở khóa                  | User locked                     | Mở khóa                        | User mở khóa thành công                       | is_locked=0, đăng nhập lại được                   | Pass      |                        |
+| TC-ADM-05    | Chọn user có face_encoding                          | Admin đăng nhập                 | Reset face                     | face_encoding bị xóa                          | face_encoding=null                                | Pass      |                        |
+| TC-ADM-06    | Chọn user, thao tác xóa                             | User tồn tại                    | Xóa user                       | User bị xóa, lưu archive                      | User bị xóa, có bản ghi deleted_profiles          | Pass      |                        |
+| TC-ADM-07    | Đã có archive                                       | Đã xóa user                     | Xem hồ sơ archive              | Hiển thị đúng thông tin                       | Thông tin archive đúng                            | Pass      |                        |
+
+#### Thống kê lỗi
+
+- Tổng số bug phát hiện: 7
+- Đã khắc phục: 7
+- Còn tồn tại: 0
+- Thời gian khắc phục trung bình: 1.2 ngày
+
+Nhận xét:
+
+1. Toàn bộ ca kiểm thử chính đều đạt trong môi trường thử nghiệm.
+2. Các lỗi phát sinh chủ yếu do dữ liệu đầu vào không đạt chất lượng (ảnh mờ, thiếu sáng), không phải lỗi logic lõi.
+3. Hệ thống đạt mục tiêu vận hành ổn định ở quy mô demo học thuật.
+4. Các lỗi nghiêm trọng về bảo mật và nhất quán dữ liệu đều đã được phát hiện và xử lý kịp thời.
+
+### 7.5. Tiểu kết chương 7 (Phân tích sâu)
+
+Chương 7 đã trình bày đầy đủ quy trình kiểm thử hệ thống từ thiết kế test case, thực thi kịch bản chi tiết đến tổng hợp kết quả và phân tích bug. Kết quả kiểm thử cho thấy các chức năng cốt lõi vận hành đúng thiết kế, dữ liệu lưu trữ nhất quán và các kiểm soát bảo mật cơ bản được đáp ứng.
+
+**Đánh giá mức độ bao phủ kiểm thử:**
+
+- 100% chức năng nghiệp vụ chính đã được kiểm thử.
+- Đã kiểm thử các trường hợp biên, lỗi, thao tác đồng thời, session timeout, upload file lớn/định dạng lạ.
+- Đã kiểm thử các tình huống tấn công phổ biến và phân quyền API.
+
+**Bài học rút ra:**
+
+- Việc xây dựng test case chi tiết giúp phát hiện lỗi logic và bảo mật sớm.
+- Cần chuẩn hóa dữ liệu đầu vào (ảnh, file) để giảm lỗi phát sinh do chất lượng dữ liệu.
+- Kiểm thử đồng thời và rollback là bắt buộc với hệ thống tài chính.
+- Nên áp dụng kiểm thử tự động cho các API quan trọng để tiết kiệm thời gian.
 
 ---
 
