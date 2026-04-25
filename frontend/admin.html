@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <main class="wrapper" style="display: none" id="mainContent">
+      <section class="panel">
+        <div class="page-header">
+          <div>
+            <h1>Admin Dashboard</h1>
+            <p id="adminInfo" class="profile-subtitle"></p>
+          </div>
+          <div class="row">
+            <button id="btnReload" class="secondary">Tải lại danh sách</button>
+            <button id="btnLogout" class="danger">Đăng xuất</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top: 16px">
+        <h2>Tạo tài khoản</h2>
+        <div class="grid">
+          <div>
+            <label>Username</label>
+            <input id="newUsername" />
+          </div>
+          <div>
+            <label>Full name</label>
+            <input id="newFullName" />
+          </div>
+          <div>
+            <label>Password</label>
+            <input id="newPassword" type="password" />
+          </div>
+          <div>
+            <label>Role</label>
+            <select id="newRole">
+              <option value="user">user</option>
+              <option value="admin">admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="row" style="margin-top: 12px">
+          <button id="btnCreateUser">Tạo user</button>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top: 16px">
+        <h2>Danh sách user</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Role</th>
+              <th>Duyệt</th>
+              <th>Face</th>
+              <th>Lock</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </section>
+
+      <section class="panel" style="margin-top: 16px">
+        <h2>Hồ sơ đã xóa</h2>
+        <p class="hint">Dữ liệu vẫn được lưu để kiểm tra thủ công khi cần.</p>
+        <div id="deletedProfiles" class="deleted-profiles-grid"></div>
+      </section>
+
+      <section class="panel" style="margin-top: 16px">
+        <div id="status" class="status success">Sẵn sàng.</div>
+      </section>
+    </main>
+
+    <script src="./assets/config.js"></script>
+    <script src="./assets/common.js"></script>
+    <script src="./assets/admin.js"></script>
+  </body>
+</html>

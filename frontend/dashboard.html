@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ngân hàng - Tài khoản của tôi</title>
+    <link rel="stylesheet" href="./assets/styles.css?v=20260425-4" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:FILL@0..1"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bank-page" style="display: none" id="mainContent">
+    <header class="bank-topbar">
+      <div class="bank-brand">
+        <span class="material-symbols-rounded brand-icon">school</span>
+        Cổng thông tin đào tạo
+      </div>
+      <div class="bank-topbar-user">
+        <span class="topbar-greeting"
+          >Xin chào, <strong id="navUsername">...</strong></span
+        >
+        <button id="btnLogout" class="btn-topbar-logout">Đăng xuất</button>
+      </div>
+    </header>
+
+    <div class="bank-layout">
+      <aside class="bank-sidebar">
+        <button class="nav-item" data-section="account">
+          <span class="material-symbols-rounded nav-icon">manage_accounts</span>
+          <span>Quản lý tài khoản</span>
+        </button>
+        <button class="nav-item" data-section="transaction">
+          <span class="material-symbols-rounded nav-icon">payments</span>
+          <span>Giao dịch</span>
+        </button>
+        <button class="nav-item" data-section="notifications">
+          <span class="material-symbols-rounded nav-icon">notifications</span>
+          <span>Thông báo hệ thống</span>
+        </button>
+        <button class="nav-item" data-section="stats">
+          <span class="material-symbols-rounded nav-icon">monitoring</span>
+          <span>Thống kê tiêu dùng</span>
+        </button>
+      </aside>
+
+      <main class="bank-main">
+        <div class="portal-subheader panel" style="margin-bottom: 14px">
+          <div class="portal-system-name">HCMUE E-Learning Banking Portal</div>
+          <div class="portal-breadcrumb">
+            <span class="material-symbols-rounded" style="font-size: 16px"
+              >home</span
+            >
+            <span>Trang chủ</span>
+            <span class="breadcrumb-sep">/</span>
+            <strong id="breadcrumbCurrent">Tổng quan</strong>
+          </div>
+        </div>
+
+        <div
+          id="status"
+          class="status success"
+          style="margin-bottom: 14px; display: none"
+        ></div>
+
+        <section id="dashboardWelcome" class="bank-section">
+          <div class="panel welcome-card">
+            <h2>Bảng điều khiển khách hàng</h2>
+            <p class="section-desc">
+              Trang chủ chỉ hiển thị các nút chức năng. Hãy chọn một mục ở thanh
+              bên trái để xem nội dung.
+            </p>
+          </div>
+        </section>
+
+        <section
+          id="section-account"
+          class="bank-section"
+          style="display: none"
+        >
+          <div class="section-header">
+            <h2>Quản lý tài khoản</h2>
+            <p class="section-desc">
+              Bao gồm hồ sơ cá nhân, số dư tài khoản, xác thực khuôn mặt, đổi
+              mật khẩu và trạng thái bảo mật.
+            </p>
+          </div>
+
+          <div class="panel overview-grid" id="kycSummaryCard">
+            <div
+              class="kyc-card"
+              style="
+                padding: 0;
+                box-shadow: none;
+                border: none;
+                background: transparent;
+              "
+            >
+              <div class="kyc-avatar">
+                <span class="material-symbols-rounded">account_circle</span>
+              </div>
+              <div class="kyc-summary-info">
+                <div class="kyc-name" id="kycName">—</div>
+                <div class="kyc-meta">
+                  <span id="kycCccdDisplay">CCCD: —</span>
+                  <span id="kycPhoneDisplay">SĐT: —</span>
+                  <span id="accountNumberDisplay">STK: —</span>
+                  <span id="kycStatusBadge" class="badge">Chưa xác minh</span>
+                </div>
+              </div>
+            </div>
+            <div class="balance-chip">
+              <div class="sec-label">Số dư còn lại</div>
+              <div class="balance-line">
+                <strong id="acctBalanceValue" class="balance-value"
+                  >********</strong
+                >
+                <button
+                  id="btnToggleBalance"
+                  class="secondary small"
+                  type="button"
+                >
+                  Hiện
+                </button>
+              </div>
+            </div>
+            <div class="row" style="margin-top: 10px">
+              <button class="secondary small" id="btnEditKyc" type="button">
+                Chỉnh sửa thông tin
+              </button>
+            </div>
+          </div>
+
+          <div
+            id="kycForm"
+            class="panel"
+            style="margin-top: 14px; display: none"
+          >
+            <h3>Thông tin cơ bản</h3>
+            <div class="form-grid">
+              <div class="form-field">
+                <label>Họ và tên <span class="req">*</span></label>
+                <input id="kycFullName" placeholder="Nguyễn Văn A" />
+              </div>
+              <div class="form-field">
+                <label>Số điện thoại <span class="req">*</span></label>
+                <input id="kycPhone" placeholder="0912345678" type="tel" />
+              </div>
+              <div class="form-field">
+                <label>Ngày sinh</label>
+                <input id="kycBirthDate" placeholder="DD/MM/YYYY" />
+              </div>
+              <div class="form-field">
+                <label>Giới tính</label>
+                <select id="kycGender">
+                  <option value="">-- Chọn --</option>
+                  <option value="Nam">Nam</option>
+                  <option value="Nữ">Nữ</option>
+                </select>
+              </div>
+            </div>
+
+            <h3 style="margin-top: 20px">Căn cước công dân (CCCD)</h3>
+            <p class="hint">
+              Chụp CCCD để tự động nhận diện thông tin, hoặc điền thủ công.
+            </p>
+
+            <div class="cccd-scan-block" style="margin-top: 10px">
+              <div class="cccd-scan-header">
+                <span>
+                  <span class="material-symbols-rounded">photo_camera</span>
+                  Mặt trước CCCD
+                </span>
+                <div class="row">
+                  <button
+                    id="btnStartCamFront"
+                    class="secondary small"
+                    type="button"
+                  >
+                    Mở camera
+                  </button>
+                  <button
+                    id="btnCaptureFront"
+                    class="secondary small"
+                    type="button"
+                  >
+                    Chụp ảnh
+                  </button>
+                  <button id="btnOcrFront" class="small" type="button">
+                    Nhận diện OCR
+                  </button>
+                </div>
+              </div>
+              <video
+                id="videoFront"
+                autoplay
+                playsinline
+                style="display: none; margin-top: 8px"
+              ></video>
+              <canvas id="canvasFront" style="display: none"></canvas>
+              <p id="frontCaptureState" class="hint">Chưa chụp.</p>
+              <div class="form-grid" style="margin-top: 10px">
+                <div class="form-field">
+                  <label>Số CCCD</label>
+                  <input
+                    id="kycCccdNumber"
+                    placeholder="012345678901"
+                    maxlength="12"
+                  />
+                </div>
+                <div class="form-field">
+                  <label>Quê quán</label>
+                  <input id="kycHometown" placeholder="Tỉnh/Thành phố" />
+                </div>
+                <div class="form-field" style="grid-column: span 2">
+                  <label>Nơi thường trú</label>
+                  <input id="kycResidence" placeholder="Địa chỉ thường trú" />
+                </div>
+                <div class="form-field">
+                  <label>Có giá trị đến</label>
+                  <input id="kycValidUntil" placeholder="DD/MM/YYYY" />
+                </div>
+              </div>
+            </div>
+
+            <div class="cccd-scan-block" style="margin-top: 12px">
+              <div class="cccd-scan-header">
+                <span>
+                  <span class="material-symbols-rounded">photo_camera</span>
+                  Mặt sau CCCD
+                </span>
+                <div class="row">
+                  <button
+                    id="btnStartCamBack"
+                    class="secondary small"
+                    type="button"
+                  >
+                    Mở camera
+                  </button>
+                  <button
+                    id="btnCaptureBack"
+                    class="secondary small"
+                    type="button"
+                  >
+                    Chụp ảnh
+                  </button>
+                  <button id="btnOcrBack" class="small" type="button">
+                    Nhận diện OCR
+                  </button>
+                </div>
+              </div>
+              <video
+                id="videoBack"
+                autoplay
+                playsinline
+                style="display: none; margin-top: 8px"
+              ></video>
+              <canvas id="canvasBack" style="display: none"></canvas>
+              <p id="backCaptureState" class="hint">Chưa chụp.</p>
+              <div class="form-grid" style="margin-top: 10px">
+                <div class="form-field">
+                  <label>Ngày cấp</label>
+                  <input id="kycIssuedDate" placeholder="DD/MM/YYYY" />
+                </div>
+                <div class="form-field">
+                  <label>Nơi cấp</label>
+                  <input id="kycIssuedPlace" placeholder="Cục CSQLHC về TTXH" />
+                </div>
+              </div>
+            </div>
+
+            <div class="row" style="margin-top: 16px">
+              <button id="btnSaveKyc" type="button">Lưu thông tin</button>
+              <button id="btnCancelKyc" class="secondary" type="button">
+                Hủy
+              </button>
+            </div>
+          </div>
+
+          <div class="account-subsections">
+            <div class="panel" style="margin-top: 14px">
+              <h3>
+                <span class="material-symbols-rounded section-icon">face</span>
+                Xác thực khuôn mặt
+              </h3>
+              <p class="hint" style="margin-bottom: 12px">
+                Mở camera, chụp ảnh khuôn mặt rõ nét, sau đó nhấn
+                <strong>Lưu khuôn mặt mới</strong>.
+              </p>
+              <video
+                id="videoFace"
+                autoplay
+                playsinline
+                style="display: none"
+              ></video>
+              <canvas id="canvasFace" style="display: none"></canvas>
+              <div class="row" style="margin-top: 12px">
+                <button id="btnStartCamFace" class="secondary" type="button">
+                  Mở webcam
+                </button>
+                <button id="btnCaptureFace" class="secondary" type="button">
+                  Chụp ảnh
+                </button>
+                <button id="btnUpdateFace" type="button">
+                  Lưu khuôn mặt mới
+                </button>
+              </div>
+              <p id="faceCaptureState" class="hint" style="margin-top: 8px">
+                Chưa chụp ảnh.
+              </p>
+            </div>
+
+            <div class="panel" style="margin-top: 14px; max-width: 520px">
+              <h3>
+                <span class="material-symbols-rounded section-icon">key</span>
+                Đổi mật khẩu
+              </h3>
+              <label>Mật khẩu hiện tại</label>
+              <input
+                id="currentPassword"
+                type="password"
+                placeholder="Nhập mật khẩu hiện tại"
+              />
+              <label style="margin-top: 12px">Mật khẩu mới</label>
+              <input
+                id="newPassword"
+                type="password"
+                placeholder="Ít nhất 6 ký tự"
+              />
+              <label style="margin-top: 12px">Xác nhận mật khẩu mới</label>
+              <input
+                id="confirmPassword"
+                type="password"
+                placeholder="Nhập lại mật khẩu mới"
+              />
+              <button
+                id="btnChangePassword"
+                class="btn-full"
+                style="margin-top: 16px"
+                type="button"
+              >
+                Đổi mật khẩu
+              </button>
+            </div>
+
+            <div class="panel" style="margin-top: 14px">
+              <h3>
+                <span class="material-symbols-rounded section-icon"
+                  >shield_lock</span
+                >
+                Bảo mật tài khoản
+              </h3>
+              <div class="security-grid">
+                <div class="panel security-card">
+                  <div class="sec-icon material-symbols-rounded">lock</div>
+                  <div>
+                    <div class="sec-label">Trạng thái tài khoản</div>
+                    <div class="sec-value" id="secStatus">—</div>
+                  </div>
+                </div>
+                <div class="panel security-card">
+                  <div class="sec-icon material-symbols-rounded">
+                    fingerprint
+                  </div>
+                  <div>
+                    <div class="sec-label">Dữ liệu khuôn mặt</div>
+                    <div class="sec-value" id="secFace">—</div>
+                  </div>
+                </div>
+                <div class="panel security-card">
+                  <div class="sec-icon material-symbols-rounded">
+                    calendar_month
+                  </div>
+                  <div>
+                    <div class="sec-label">Ngày tạo tài khoản</div>
+                    <div class="sec-value" id="secCreated">—</div>
+                  </div>
+                </div>
+                <div class="panel security-card">
+                  <div class="sec-icon material-symbols-rounded">badge</div>
+                  <div>
+                    <div class="sec-label">Tên đăng nhập</div>
+                    <div class="sec-value" id="secUsername">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="section-transaction"
+          class="bank-section"
+          style="display: none"
+        >
+          <div class="section-header">
+            <h2>Giao dịch</h2>
+            <p class="section-desc">
+              Chuyển tiền nội địa tới tài khoản khác trong hệ thống.
+            </p>
+            <p class="hint">
+              Số tài khoản của bạn: <strong id="txnMyAccountNumber">—</strong>
+            </p>
+          </div>
+          <div class="panel">
+            <div class="txn-form-grid">
+              <div class="form-field">
+                <label>Số tài khoản nhận</label>
+                <input
+                  id="txnTargetAccount"
+                  placeholder="Nhập số tài khoản"
+                  maxlength="20"
+                />
+              </div>
+              <div class="form-field">
+                <label>Xác nhận tài khoản</label>
+                <button id="btnResolveRecipient" type="button">OK</button>
+              </div>
+              <div class="form-field" style="grid-column: span 2">
+                <label>Tên người nhận</label>
+                <input
+                  id="txnRecipientName"
+                  readonly
+                  value="Chưa xác nhận STK"
+                />
+              </div>
+            </div>
+            <div id="txnDetailsGroup" class="txn-details-group">
+              <div class="txn-form-grid" style="margin-top: 12px">
+                <div class="form-field">
+                  <label>Số tiền (VND)</label>
+                  <input
+                    id="txnAmount"
+                    type="number"
+                    min="1000"
+                    step="1000"
+                    placeholder="100000"
+                  />
+                </div>
+                <div class="form-field" style="grid-column: span 2">
+                  <label>Nội dung giao dịch</label>
+                  <input
+                    id="txnNote"
+                    placeholder="Ví dụ: Chuyển tiền sinh hoạt tháng 4"
+                    maxlength="120"
+                  />
+                </div>
+              </div>
+              <div class="row" style="margin-top: 12px">
+                <button id="btnTransfer" type="button">
+                  Chuyển tiền nội địa
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top: 14px">
+            <h3>Lịch sử giao dịch gần đây</h3>
+            <div class="txn-history-wrap">
+              <table class="txn-history-table">
+                <thead>
+                  <tr>
+                    <th>Thời gian</th>
+                    <th>Loại</th>
+                    <th>Tài khoản</th>
+                    <th>Số tiền</th>
+                    <th>Nội dung</th>
+                  </tr>
+                </thead>
+                <tbody id="txnHistoryBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="section-notifications"
+          class="bank-section"
+          style="display: none"
+        >
+          <div class="section-header">
+            <h2>Thông báo hệ thống</h2>
+            <p class="section-desc">
+              Thông báo nhận tiền, trừ tiền và các thay đổi bảo mật tài khoản.
+            </p>
+          </div>
+          <div class="panel">
+            <div id="notificationEmpty" class="hint">
+              Chưa có thông báo nào.
+            </div>
+            <ul id="notificationList" class="notification-list"></ul>
+          </div>
+        </section>
+
+        <section id="section-stats" class="bank-section" style="display: none">
+          <div class="section-header">
+            <h2>Thống kê tiêu dùng</h2>
+            <p class="section-desc">
+              Theo dõi thu chi theo khoảng ngày bạn chọn (tối đa 30 ngày mỗi lần
+              xem).
+            </p>
+          </div>
+          <div class="panel" style="margin-top: 14px">
+            <h3>Thống kê chi tiêu</h3>
+            <div class="stats-filter-grid">
+              <div class="form-field">
+                <label for="spendFromDate">Từ ngày</label>
+                <input
+                  id="spendFromDate"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="10"
+                  placeholder="dd/mm/yyyy"
+                />
+              </div>
+              <div class="form-field">
+                <label for="spendToDate">Đến ngày</label>
+                <input
+                  id="spendToDate"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="10"
+                  placeholder="dd/mm/yyyy"
+                />
+              </div>
+              <div class="form-field stats-filter-action">
+                <label>&nbsp;</label>
+                <button id="btnApplySpendRange" type="button" class="secondary">
+                  Xem thống kê chi tiêu
+                </button>
+              </div>
+            </div>
+            <p id="spendRangeHint" class="hint" style="margin-top: 0"></p>
+            <div class="stats-grid">
+              <div class="panel stat-card">
+                <div class="sec-label">Tổng chi</div>
+                <div id="statMonthlySpend" class="stat-value">0 VND</div>
+              </div>
+              <div class="panel stat-card">
+                <div class="sec-label">Tổng tiền nhận</div>
+                <div id="statTotalReceived" class="stat-value">0 VND</div>
+              </div>
+              <div class="panel stat-card">
+                <div class="sec-label">Số giao dịch</div>
+                <div id="statTxnCount" class="stat-value">0</div>
+              </div>
+              <div class="panel stat-card">
+                <div class="sec-label">Giao dịch chi lớn nhất</div>
+                <div id="statLargestDebit" class="stat-value">0 VND</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top: 14px">
+            <h3>Biến động thu chi theo ngày</h3>
+            <div id="statsByDay" class="stats-bars"></div>
+          </div>
+
+          <div class="panel" style="margin-top: 14px">
+            <h3>Thống kê tài khoản (Thu - Chi)</h3>
+            <div class="stats-filter-grid">
+              <div class="form-field">
+                <label for="accountFromDate">Từ ngày</label>
+                <input
+                  id="accountFromDate"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="10"
+                  placeholder="dd/mm/yyyy"
+                />
+              </div>
+              <div class="form-field">
+                <label for="accountToDate">Đến ngày</label>
+                <input
+                  id="accountToDate"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="10"
+                  placeholder="dd/mm/yyyy"
+                />
+              </div>
+              <div class="form-field stats-filter-action">
+                <label>&nbsp;</label>
+                <button
+                  id="btnApplyAccountRange"
+                  type="button"
+                  class="secondary"
+                >
+                  Xem thống kê tài khoản
+                </button>
+              </div>
+            </div>
+            <p id="accountRangeHint" class="hint" style="margin-top: 0"></p>
+            <div class="stats-grid">
+              <div class="panel stat-card">
+                <div class="sec-label">Tổng thu</div>
+                <div id="statAccountIncome" class="stat-value">0 VND</div>
+              </div>
+              <div class="panel stat-card">
+                <div class="sec-label">Tổng chi</div>
+                <div id="statAccountExpense" class="stat-value">0 VND</div>
+              </div>
+              <div class="panel stat-card">
+                <div class="sec-label">Lợi nhuận (Thu - Chi)</div>
+                <div id="statAccountProfit" class="stat-value">0 VND</div>
+              </div>
+              <div class="panel stat-card">
+                <div class="sec-label">Số dư hiện tại</div>
+                <div id="statCurrentBalance" class="stat-value">0 VND</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div
+      id="transferConfirmModal"
+      class="transfer-confirm-modal"
+      aria-hidden="true"
+    >
+      <div
+        class="transfer-confirm-backdrop"
+        data-close-transfer-modal="true"
+      ></div>
+      <div
+        class="transfer-confirm-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="transferConfirmTitle"
+      >
+        <h3 id="transferConfirmTitle">Xác nhận giao dịch</h3>
+        <p class="hint" style="margin-top: 0">
+          Vui lòng kiểm tra lại thông tin. Nút xác nhận sẽ mở sau 3 giây.
+        </p>
+        <div class="transfer-confirm-summary">
+          <div>
+            <span>Người nhận:</span><strong id="confirmReceiverName">—</strong>
+          </div>
+          <div>
+            <span>STK nhận:</span><strong id="confirmReceiverAccount">—</strong>
+          </div>
+          <div>
+            <span>Số tiền:</span><strong id="confirmTransferAmount">—</strong>
+          </div>
+          <div>
+            <span>Nội dung:</span><strong id="confirmTransferNote">—</strong>
+          </div>
+        </div>
+        <div class="row" style="margin-top: 12px">
+          <button id="btnCancelTransferConfirm" type="button" class="secondary">
+            Hủy
+          </button>
+          <button id="btnConfirmTransferExec" type="button" disabled>
+            Xác nhận (3s)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="./assets/config.js?v=20260425-10"></script>
+    <script src="./assets/common.js?v=20260425-10"></script>
+    <script src="./assets/dashboard.js?v=20260425-10"></script>
+  </body>
+</html>
