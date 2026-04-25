@@ -1016,6 +1016,27 @@ sequenceDiagram
   BackendPHP->>Frontend: Thông báo kết quả
   Frontend->>Admin: Hiển thị thông báo
 ```
+##### Sơ đồ hoạt động UC-17: Xem hồ sơ đã xóa (Admin)
+
+```mermaid
+sequenceDiagram
+    participant Admin
+    participant HệThống
+    Admin->>HệThống: Đăng nhập hệ thống
+    Admin->>HệThống: Truy cập chức năng hồ sơ đã xóa
+    HệThống-->>Admin: Hiển thị danh sách hồ sơ đã xóa
+    Admin->>HệThống: Chọn hồ sơ (xem chi tiết/khôi phục)
+    alt Không có hồ sơ nào
+        HệThống-->>Admin: Thông báo không có hồ sơ nào
+    else Có hồ sơ
+        opt Xem chi tiết
+            HệThống-->>Admin: Hiển thị chi tiết hồ sơ
+        end
+        opt Khôi phục
+            HệThống-->>Admin: Thông báo khôi phục thành công
+        end
+    end
+```
 
 #### 3.6.x. Hướng Dẫn Đọc, Bảo Mật, Tiểu Kết
 
