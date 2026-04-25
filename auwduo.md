@@ -204,3 +204,949 @@ Hệ thống xác thực sinh trắc học cần tuân thủ nghiêm ngặt các
 Chương 2 đã trình bày tổng quan, phân tích sâu sắc các khái niệm, công nghệ, quy trình, tiêu chuẩn nền tảng cho hệ thống xác thực người dùng qua khuôn mặt trên nền tảng web. Các nội dung về sinh trắc học, nhận diện khuôn mặt, kiểm tra liveness, OCR, bảo mật, kiến trúc hệ thống, cơ sở dữ liệu, pháp lý,... là cơ sở lý thuyết vững chắc để triển khai các bước phân tích, thiết kế, xây dựng, kiểm thử và đánh giá hệ thống ở các chương tiếp theo. Việc nắm vững lý thuyết giúp đảm bảo hệ thống vừa hiện đại, vừa an toàn, vừa tuân thủ pháp lý và tối ưu trải nghiệm người dùng.
 
 ---
+## Chương 3: Phân Tích Yêu Cầu Và Nghiệp Vụ
+
+### 3.1. Xác Định Các Bên Liên Quan
+
+Việc xác định các bên liên quan (stakeholders) là bước nền tảng trong phân tích nghiệp vụ, đảm bảo hệ thống đáp ứng đúng nhu cầu thực tiễn, phân quyền rõ ràng, vận hành hiệu quả và tuân thủ pháp lý. Dựa trên khảo sát yêu cầu, phân tích code thực tế và kiến trúc hệ thống, các bên liên quan chính bao gồm:
+
+#### 3.1.1. Khách vãng lai (Guest)
+
+- **Vai trò:** Người chưa có tài khoản hoặc chưa đăng nhập.
+- **Chức năng:** Đăng ký tài khoản, đăng nhập bằng mật khẩu hoặc khuôn mặt.
+- **Luồng nghiệp vụ:**
+  - Truy cập giao diện đăng ký/đăng nhập.
+    - Truy cập giao diện đăng ký/đăng nhập.
+  - Gửi thông tin đăng ký qua API.
+    - Gửi thông tin đăng ký qua API.
+  - Đăng nhập bằng mật khẩu hoặc khuôn mặt.
+    - Đăng nhập bằng mật khẩu hoặc khuôn mặt.
+- **Yêu cầu bảo mật:** Chống spam đăng ký, xác thực liveness khi đăng nhập khuôn mặt.
+
+#### 3.1.2. Người dùng (User)
+
+- **Vai trò:** Người đã đăng ký, xác thực thành công.
+- **Chức năng:** Quản lý tài khoản, xác thực, giao dịch, cập nhật thông tin, KYC, đổi mật khẩu, xem lịch sử, đăng xuất.
+- **Luồng nghiệp vụ:**
+  - Truy cập dashboard.
+    - Truy cập dashboard.
+  - Cập nhật KYC, upload CCCD, thực hiện OCR.
+    - Cập nhật KYC, upload CCCD, thực hiện OCR.
+  - Đổi mật khẩu.
+    - Đổi mật khẩu.
+  - Cập nhật khuôn mặt.
+    - Cập nhật khuôn mặt.
+  - Thực hiện giao dịch, xem lịch sử.
+    - Thực hiện giao dịch, xem lịch sử.
+- **Yêu cầu bảo mật:** Kiểm soát truy cập, xác thực JWT, logging, mã hóa dữ liệu.
+
+#### 3.1.3. Quản trị viên (Admin)
+
+- **Vai trò:** Người quản lý hệ thống, có quyền cao nhất.
+- **Chức năng:** Quản lý người dùng, duyệt/từ chối tài khoản, khóa/mở khóa, reset dữ liệu khuôn mặt, xóa tài khoản, xem hồ sơ đã xóa.
+- **Luồng nghiệp vụ:**
+  - Truy cập giao diện quản trị.
+    - Truy cập giao diện quản trị.
+  - Quản lý người dùng qua API, thực hiện các thao tác duyệt, khóa, xóa, reset.
+    - Quản lý người dùng qua API, thực hiện các thao tác duyệt, khóa, xóa, reset.
+- **Yêu cầu bảo mật:** Phân quyền chặt chẽ, kiểm soát thao tác, ghi log.
+
+#### 3.1.4. AI Backend
+
+- **Vai trò:** Thành phần xử lý AI, nhận diện khuôn mặt, kiểm tra liveness, OCR.
+- **Chức năng:**
+  - Nhận ảnh từ frontend/backend, thực hiện nhận diện khuôn mặt (face_recognition), kiểm tra liveness, trích xuất thông tin từ ảnh giấy tờ (EasyOCR, Google Vision API).
+  - Trả kết quả xác thực về backend PHP.
+- **Luồng nghiệp vụ:**
+  - Xử lý tại AI backend, tích hợp API với backend.
+    - Xử lý tại AI backend, tích hợp API với backend.
+- **Yêu cầu bảo mật:** Chỉ nhận yêu cầu từ backend hợp lệ, không lộ dữ liệu sinh trắc học.
+
+#### 3.1.5. Hệ thống backend (PHP Backend)
+
+- **Vai trò:** Trung gian điều phối nghiệp vụ, xác thực, phân quyền, logging, bảo mật.
+- **Chức năng:**
+  - Nhận yêu cầu từ frontend, xác thực, phân quyền, chuyển tiếp đến AI backend khi cần.
+  - Quản lý dữ liệu người dùng, nhật ký, trạng thái tài khoản.
+    - Quản lý dữ liệu người dùng, nhật ký, trạng thái tài khoản.
+- **Luồng nghiệp vụ:**
+  - Xử lý xác thực, phân quyền.
+    - Xử lý xác thực, phân quyền.
+  - Kết nối AI backend qua HTTP API.
+- **Yêu cầu bảo mật:** Kiểm soát truy cập, mã hóa, logging, tuân thủ pháp lý.
+
+#### 3.1.6. Tổng kết vai trò và mối quan hệ
+
+Các bên liên quan trên phối hợp chặt chẽ, tạo thành chuỗi nghiệp vụ khép kín, đảm bảo hệ thống vận hành an toàn, hiệu quả, đúng quy trình. Việc xác định rõ vai trò, chức năng, quyền hạn từng bên là cơ sở để xây dựng Use Case, phân rã chức năng, thiết kế kiến trúc, đảm bảo bảo mật và tuân thủ pháp lý.
+
+### 3.2. Danh Sách Use Case Chuẩn
+
+Việc xây dựng danh sách Use Case (UC) chuẩn là nền tảng để đảm bảo hệ thống đáp ứng đầy đủ, đúng và minh bạch các yêu cầu nghiệp vụ, bảo mật, pháp lý, UX/UI. Danh sách này được tổng hợp từ khảo sát thực tế, phân tích nghiệp vụ, xác thực với codebase và kiểm thử hệ thống. Mỗi Use Case đều gắn với actor cụ thể, mục tiêu nghiệp vụ rõ ràng, liên kết trực tiếp với các thành phần code thực tế.
+
+#### 3.2.1. Bảng Danh Sách Use Case Chuẩn
+
+| Mã UC | Tên Use Case                    | Actor chính         | Mục tiêu nghiệp vụ                                 | Liên kết code thực tế |
+| ----- | ------------------------------- | ------------------- | -------------------------------------------------- | --------------------- |
+| UC-01 | Đăng ký tài khoản               | Khách vãng lai      | Tạo tài khoản mới, lưu thông tin, enroll khuôn mặt |                       |
+| UC-02 | Đăng nhập bằng mật khẩu         | Khách vãng lai      | Xác thực truy cập truyền thống                     |                       |
+| UC-03 | Đăng nhập bằng khuôn mặt        | Khách vãng lai + AI | Xác thực nhanh, chống giả mạo, kiểm tra liveness   |                       |
+| UC-04 | Xem thông tin tài khoản         | Người dùng          | Tra cứu, kiểm tra thông tin cá nhân                |                       |
+| UC-05 | Cập nhật KYC (upload CCCD, OCR) | Người dùng + AI     | Định danh, xác thực giấy tờ, OCR                   |                       |
+| UC-06 | Cập nhật khuôn mặt              | Người dùng + AI     | Cập nhật dữ liệu sinh trắc học                     |                       |
+| UC-07 | Đổi mật khẩu                    | Người dùng          | Đảm bảo bảo mật tài khoản                          |                       |
+| UC-08 | Chuyển khoản nội địa            | Người dùng          | Thực hiện giao dịch tài chính                      |                       |
+| UC-09 | Xem lịch sử giao dịch           | Người dùng          | Kiểm tra, đối soát giao dịch                       |                       |
+| UC-10 | Đăng xuất                       | Người dùng          | Kết thúc phiên làm việc an toàn                    |                       |
+| UC-11 | Xem danh sách người dùng        | Admin               | Quản lý, kiểm soát hệ thống                        |                       |
+| UC-12 | Duyệt tài khoản                 | Admin               | Phê duyệt tài khoản mới                            |                       |
+| UC-13 | Từ chối tài khoản               | Admin               | Loại bỏ tài khoản không hợp lệ                     |                       |
+| UC-14 | Khóa / Mở khóa tài khoản        | Admin               | Kiểm soát truy cập, bảo mật                        |                       |
+| UC-15 | Reset dữ liệu khuôn mặt         | Admin               | Yêu cầu cập nhật lại dữ liệu sinh trắc học         |                       |
+| UC-16 | Xóa tài khoản                   | Admin               | Đảm bảo tuân thủ pháp lý, xóa dữ liệu              |                       |
+| UC-17 | Xem hồ sơ đã xóa                | Admin               | Tra cứu, kiểm tra lịch sử xóa                      |                       |
+
+#### 3.2.2. Phân Nhóm Use Case Theo Actor
+
+- **Khách vãng lai:** Đăng ký, đăng nhập (mật khẩu/khuôn mặt)
+- **Người dùng:** Quản lý tài khoản, xác thực, cập nhật thông tin, giao dịch, đổi mật khẩu, đăng xuất
+- **Admin:** Quản lý, duyệt, khóa/mở khóa, reset, xóa tài khoản, xem hồ sơ đã xóa
+- **AI backend:** Tham gia xác thực khuôn mặt, kiểm tra liveness, OCR (gắn với các UC-03, UC-05, UC-06)
+
+#### 3.2.3. Bảng Phân Quyền Actor - Use Case
+
+| Use Case | Khách vãng lai | Người dùng | Admin | AI backend |
+| -------- | :------------: | :--------: | :---: | :--------: |
+| UC-01    |       ✓        |            |       |            |
+| UC-02    |       ✓        |            |       |            |
+| UC-03    |       ✓        |            |       |     ✓      |
+| UC-04    |                |     ✓      |       |            |
+| UC-05    |                |     ✓      |       |     ✓      |
+| UC-06    |                |     ✓      |       |     ✓      |
+| UC-07    |                |     ✓      |       |            |
+| UC-08    |                |     ✓      |       |            |
+| UC-09    |                |     ✓      |       |            |
+| UC-10    |                |     ✓      |       |            |
+| UC-11    |                |            |   ✓   |            |
+| UC-12    |                |            |   ✓   |            |
+| UC-13    |                |            |   ✓   |            |
+| UC-14    |                |            |   ✓   |            |
+| UC-15    |                |            |   ✓   |            |
+| UC-16    |                |            |   ✓   |            |
+| UC-17    |                |            |   ✓   |            |
+
+#### 3.2.4. Nhận Diện Các Nhóm Use Case Chính
+
+- **Nhóm xác thực:** Đăng ký, đăng nhập (UC-01, UC-02, UC-03)
+- **Nhóm quản lý tài khoản:** Xem thông tin, cập nhật KYC, cập nhật khuôn mặt, đổi mật khẩu, đăng xuất (UC-04, UC-05, UC-06, UC-07, UC-10)
+- **Nhóm giao dịch:** Chuyển khoản, xem lịch sử (UC-08, UC-09)
+- **Nhóm quản trị:** Xem danh sách, duyệt, từ chối, khóa/mở khóa, reset, xóa, xem hồ sơ đã xóa (UC-11 đến UC-17)
+
+#### 3.2.5. Lưu Ý Bảo Mật, Kiểm Thử Và Tuân Thủ
+
+- Mỗi Use Case đều có kiểm thử bảo mật (authentication, authorization, liveness, logging, mã hóa dữ liệu, kiểm soát truy cập) và kiểm thử chức năng (unit test, integration test, manual test qua Postman, UI test qua frontend).
+- Các Use Case liên quan dữ liệu sinh trắc học (UC-01, UC-03, UC-05, UC-06, UC-15) đều có kiểm tra liveness, mã hóa, logging, tuân thủ pháp lý (GDPR, luật Việt Nam).
+- Các thao tác quản trị (UC-11 đến UC-17) chỉ cho phép actor có quyền admin, kiểm soát phân quyền.
+- Tất cả các API đều xác thực JWT, kiểm soát session, logging thao tác, chống tấn công CSRF/XSS/SQLi.
+
+### 3.3. Sơ Đồ UseCase Chuẩn
+
+Sơ đồ Use Case là công cụ trực quan hóa toàn bộ các chức năng nghiệp vụ, mối quan hệ giữa các actor và hệ thống, giúp các bên liên quan (stakeholder, developer, tester, quản trị) dễ dàng hình dung, kiểm soát và mở rộng hệ thống. Sơ đồ dưới đây được xây dựng theo chuẩn UML, xác thực với danh sách Use Case và code thực tế.
+
+#### 3.3.1. Sơ Đồ Use Case Chuẩn (Mermaid)
+
+```mermaid
+usecaseDiagram
+  actor Guest as "Khách vãng lai"
+  actor User as "Người dùng"
+  actor Admin
+  actor AI
+  Guest --> (UC-01 Đăng ký tài khoản)
+  Guest --> (UC-02 Đăng nhập bằng mật khẩu)
+  Guest --> (UC-03 Đăng nhập bằng khuôn mặt)
+  User --> (UC-04 Xem thông tin tài khoản)
+  User --> (UC-05 Cập nhật KYC)
+  User --> (UC-06 Cập nhật khuôn mặt)
+  User --> (UC-07 Đổi mật khẩu)
+  User --> (UC-08 Chuyển khoản nội địa)
+  User --> (UC-09 Xem lịch sử giao dịch)
+  User --> (UC-10 Đăng xuất)
+  Admin --> (UC-11 Xem danh sách người dùng)
+  Admin --> (UC-12 Duyệt tài khoản)
+  Admin --> (UC-13 Từ chối tài khoản)
+  Admin --> (UC-14 Khóa/Mở khóa tài khoản)
+  Admin --> (UC-15 Reset dữ liệu khuôn mặt)
+  Admin --> (UC-16 Xóa tài khoản)
+  Admin --> (UC-17 Xem hồ sơ đã xóa)
+  (UC-03 Đăng nhập bằng khuôn mặt) ..> AI : include
+  (UC-05 Cập nhật KYC) ..> AI : include
+  (UC-06 Cập nhật khuôn mặt) ..> AI : include
+```
+
+#### 3.3.2. Hướng Dẫn Đọc Sơ Đồ
+
+- **Actor (hình người):** Đại diện cho các bên liên quan (Khách vãng lai, Người dùng, Admin, AI backend).
+- **Use Case (hình oval):** Đại diện cho chức năng nghiệp vụ chính, được đặt tên theo chuẩn UC-xx.
+- **Mũi tên liền:** Actor thực hiện trực tiếp Use Case.
+- **Mũi tên nét đứt "include":** Use Case phụ thuộc, bao hàm chức năng AI backend (nhận diện khuôn mặt, OCR, liveness).
+
+#### 3.3.3. Phân Tích Mối Quan Hệ Actor - Use Case
+
+- **Khách vãng lai:** Được phép đăng ký, đăng nhập (mật khẩu/khuôn mặt), khởi tạo tài khoản mới.
+- **Người dùng:** Sau khi xác thực, có quyền truy cập, cập nhật thông tin, thực hiện giao dịch, đổi mật khẩu, đăng xuất.
+- **Admin:** Quản trị toàn bộ hệ thống, duyệt/từ chối, khóa/mở khóa, reset, xóa tài khoản, xem hồ sơ đã xóa.
+- **AI backend:** Tham gia xác thực khuôn mặt, kiểm tra liveness, OCR, là thành phần phụ thuộc (include) trong các Use Case liên quan sinh trắc học.
+
+#### 3.3.4. Nhóm Chức Năng Chính Trên Sơ Đồ
+
+- **Nhóm xác thực:** UC-01, UC-02, UC-03 (đăng ký, đăng nhập truyền thống, đăng nhập khuôn mặt)
+- **Nhóm quản lý tài khoản:** UC-04 đến UC-07, UC-10 (xem thông tin, cập nhật KYC, cập nhật khuôn mặt, đổi mật khẩu, đăng xuất)
+- **Nhóm giao dịch:** UC-08, UC-09 (chuyển khoản, xem lịch sử)
+- **Nhóm quản trị:** UC-11 đến UC-17 (quản lý, duyệt, khóa/mở khóa, reset, xóa, xem hồ sơ đã xóa)
+
+#### 3.3.5. Liên Kết Sơ Đồ Với Code Thực Tế
+
+#### 3.3.6. Lưu Ý Bảo Mật, Kiểm Thử
+
+- Các Use Case có liên kết AI backend đều kiểm tra liveness, mã hóa dữ liệu, logging, xác thực JWT.
+- Các chức năng quản trị chỉ cho phép actor admin, kiểm soát phân quyền.
+- Sơ đồ là cơ sở để kiểm thử tích hợp (integration test), kiểm thử UI, kiểm thử bảo mật toàn hệ thống.
+
+### 3.4. Đặc Tả UseCase Chi Tiết
+
+Đặc tả Use Case chi tiết giúp làm rõ logic nghiệp vụ, điều kiện, luồng xử lý, ngoại lệ, bảo mật và liên kết trực tiếp với code thực tế. Dưới đây là các đặc tả tiêu biểu, các UC khác có thể trình bày tương tự.
+
+---
+
+**UC-01: Đăng ký tài khoản**
+
+- **Actor:** Khách vãng lai, AI backend
+- **Tiền điều kiện:** Chưa có tài khoản, có thiết bị hỗ trợ camera
+- **Luồng chính:**
+  1. Người dùng truy cập giao diện đăng ký.
+  2. Nhập thông tin, chụp ảnh khuôn mặt.
+  3. Ảnh gửi lên AI backend để trích xuất face encoding.
+  4. Backend kiểm tra hợp lệ, lưu thông tin, mã hóa dữ liệu.
+  5. Thông báo kết quả đăng ký thành công/thất bại.
+- **Luồng phụ:** Username đã tồn tại, ảnh không hợp lệ, yêu cầu nhập lại.
+- **Ngoại lệ:** Lỗi kết nối, AI backend không phản hồi, dữ liệu khuôn mặt không nhận diện được.
+- **Bảo mật:** Kiểm tra liveness, mã hóa dữ liệu, logging thao tác.
+
+---
+
+**UC-02: Đăng nhập bằng mật khẩu**
+
+- **Actor:** Khách vãng lai
+- **Tiền điều kiện:** Đã có tài khoản, tài khoản chưa bị khóa
+- **Luồng chính:**
+  1. Người dùng nhập username, password.
+  2. Backend xác thực thông tin.
+  3. Nếu hợp lệ, tạo session, chuyển hướng vào hệ thống.
+- **Luồng phụ:** Sai mật khẩu, cho phép thử lại.
+- **Ngoại lệ:** Tài khoản bị khóa, lỗi kết nối.
+- **Bảo mật:** Mã hóa mật khẩu, kiểm soát session, logging.
+
+---
+
+**UC-03: Đăng nhập bằng khuôn mặt**
+
+- **Actor:** Khách vãng lai, AI backend
+- **Tiền điều kiện:** Đã đăng ký khuôn mặt, tài khoản chưa bị khóa
+- **Luồng chính:**
+  1. Người dùng truy cập giao diện đăng nhập.
+  2. Hệ thống yêu cầu truy xuất camera, chụp ảnh khuôn mặt.
+  3. Ảnh gửi lên AI backend để nhận diện, kiểm tra liveness.
+  4. Nếu hợp lệ, hệ thống xác thực thành công, chuyển hướng vào hệ thống.
+- **Luồng phụ:** Nếu nhận diện thất bại, cho phép thử lại hoặc chuyển sang xác thực bằng mật khẩu.
+- **Ngoại lệ:** Thiết bị không hỗ trợ camera, lỗi kết nối, dữ liệu khuôn mặt không khớp.
+- **Bảo mật:** Kiểm tra liveness, mã hóa dữ liệu, logging thao tác.
+
+---
+
+**UC-04: Xem thông tin tài khoản**
+
+- **Actor:** Người dùng
+- **Tiền điều kiện:** Đã đăng nhập hệ thống
+- **Luồng chính:**
+  1. Người dùng truy cập dashboard.
+  2. Hệ thống truy vấn thông tin tài khoản.
+  3. Hiển thị thông tin cá nhân, trạng thái xác thực, lịch sử cập nhật.
+- **Luồng phụ:** Thông tin chưa cập nhật đủ, yêu cầu bổ sung.
+- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
+- **Bảo mật:** Xác thực JWT, kiểm soát truy cập.
+
+---
+
+**UC-05: Cập nhật KYC (upload CCCD, OCR)**
+
+- **Actor:** Người dùng, AI backend
+- **Tiền điều kiện:** Đã đăng nhập hệ thống.
+- **Luồng chính:**
+  1. Người dùng truy cập chức năng cập nhật KYC.
+  2. Hệ thống yêu cầu upload ảnh giấy tờ tùy thân.
+  3. Ảnh gửi lên AI backend để OCR, trích xuất thông tin.
+  4. Thông tin giấy tờ được lưu vào hệ thống.
+- **Luồng phụ:** Ảnh giấy tờ không hợp lệ, yêu cầu upload lại.
+- **Ngoại lệ:** Lỗi kết nối, AI backend không phản hồi.
+- **Bảo mật:** Mã hóa dữ liệu, logging thao tác, kiểm soát truy cập.
+
+---
+
+**UC-06: Cập nhật khuôn mặt**
+
+- **Actor:** Người dùng, AI backend
+- **Tiền điều kiện:** Đã đăng nhập hệ thống
+- **Luồng chính:**
+  1. Người dùng truy cập chức năng cập nhật khuôn mặt.
+  2. Hệ thống yêu cầu chụp ảnh mới, gửi lên AI backend.
+  3. AI backend trích xuất face encoding, trả về backend.
+  4. Backend cập nhật dữ liệu, xác nhận thành công.
+- **Luồng phụ:** Ảnh không hợp lệ, yêu cầu chụp lại.
+- **Ngoại lệ:** Lỗi kết nối, AI backend không phản hồi.
+- **Bảo mật:** Kiểm tra liveness, mã hóa dữ liệu, logging thao tác.
+
+---
+
+**UC-07: Đổi mật khẩu**
+
+- **Actor:** Người dùng
+- **Tiền điều kiện:** Đã đăng nhập hệ thống
+- **Luồng chính:**
+  1. Người dùng truy cập chức năng đổi mật khẩu.
+  2. Nhập mật khẩu hiện tại, mật khẩu mới.
+  3. Backend xác thực, cập nhật mật khẩu.
+  4. Thông báo kết quả.
+- **Luồng phụ:** Mật khẩu mới không hợp lệ, yêu cầu nhập lại.
+- **Ngoại lệ:** Mật khẩu hiện tại sai, lỗi kết nối.
+- **Bảo mật:** Mã hóa mật khẩu, logging thao tác.
+
+---
+
+**UC-11: Xem danh sách người dùng (Admin)**
+
+- **Actor:** Admin
+- **Tiền điều kiện:** Đã đăng nhập với quyền admin
+- **Luồng chính:**
+  1. Admin truy cập giao diện quản trị.
+  2. Hệ thống truy vấn danh sách người dùng.
+  3. Hiển thị danh sách, trạng thái, thao tác quản lý.
+- **Luồng phụ:** Lọc, tìm kiếm, phân trang.
+- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
+- **Bảo mật:** Phân quyền, logging thao tác.
+
+---
+
+**UC-14: Khóa/Mở khóa tài khoản (Admin)**
+
+- **Actor:** Admin
+- **Tiền điều kiện:** Đã đăng nhập với quyền admin
+- **Luồng chính:**
+  1. Admin thao tác khóa/mở khóa tài khoản trên giao diện.
+  2. Backend cập nhật trạng thái tài khoản.
+  3. Thông báo kết quả.
+- **Luồng phụ:** Tài khoản đã bị khóa/mở khóa trước đó.
+- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
+- **Bảo mật:** Phân quyền, logging thao tác.
+
+---
+
+---
+
+**UC-08: Chuyển khoản nội địa**
+
+- **Actor:** Người dùng
+- **Tiền điều kiện:** Đã đăng nhập hệ thống, có số dư đủ
+- **Luồng chính:**
+  1. Người dùng truy cập chức năng chuyển khoản.
+  2. Nhập thông tin tài khoản nhận, số tiền.
+  3. Backend kiểm tra số dư, xác thực giao dịch.
+  4. Nếu hợp lệ, cập nhật số dư, ghi nhận giao dịch.
+  5. Thông báo kết quả.
+- **Luồng phụ:** Tài khoản nhận không hợp lệ, số dư không đủ, yêu cầu nhập lại.
+- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
+- **Bảo mật:** Xác thực hai lớp, logging thao tác.
+
+---
+
+**UC-09: Xem lịch sử giao dịch**
+
+- **Actor:** Người dùng
+- **Tiền điều kiện:** Đã đăng nhập hệ thống
+- **Luồng chính:**
+  1. Người dùng truy cập chức năng xem lịch sử.
+  2. Backend truy vấn lịch sử giao dịch.
+  3. Hiển thị danh sách giao dịch, lọc theo thời gian.
+- **Luồng phụ:** Không có giao dịch nào, hiển thị thông báo.
+- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
+- **Bảo mật:** Xác thực JWT, logging thao tác.
+
+---
+
+**UC-10: Đăng xuất**
+
+- **Actor:** Người dùng
+- **Tiền điều kiện:** Đã đăng nhập hệ thống
+- **Luồng chính:**
+  1. Người dùng nhấn nút đăng xuất.
+  2. Backend xóa session, chuyển về trang đăng nhập.
+- **Luồng phụ:** Session đã hết hạn, tự động đăng xuất.
+- **Ngoại lệ:** Lỗi kết nối.
+- **Bảo mật:** Xóa session, logging thao tác.
+
+---
+
+**UC-12: Duyệt tài khoản (Admin)**
+
+- **Actor:** Admin
+- **Tiền điều kiện:** Đã đăng nhập với quyền admin
+- **Luồng chính:**
+  1. Admin chọn tài khoản cần duyệt trên giao diện.
+  2. Backend cập nhật trạng thái duyệt.
+  3. Thông báo kết quả.
+- **Luồng phụ:** Tài khoản đã được duyệt trước đó.
+- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
+- **Bảo mật:** Phân quyền, logging thao tác.
+
+---
+
+**UC-13: Từ chối tài khoản (Admin)**
+
+- **Actor:** Admin
+- **Tiền điều kiện:** Đã đăng nhập với quyền admin
+- **Luồng chính:**
+  1. Admin chọn tài khoản cần từ chối trên giao diện.
+  2. Backend cập nhật trạng thái từ chối.
+  3. Thông báo kết quả.
+- **Luồng phụ:** Tài khoản đã bị từ chối trước đó.
+- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
+- **Bảo mật:** Phân quyền, logging thao tác.
+
+---
+
+**UC-15: Reset dữ liệu khuôn mặt (Admin)**
+
+- **Actor:** Admin
+- **Tiền điều kiện:** Đã đăng nhập với quyền admin
+- **Luồng chính:**
+  1. Admin chọn tài khoản cần reset khuôn mặt.
+  2. Backend xóa dữ liệu khuôn mặt.
+  3. Thông báo kết quả.
+- **Luồng phụ:** Tài khoản chưa có dữ liệu khuôn mặt.
+- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
+- **Bảo mật:** Phân quyền, logging thao tác.
+
+---
+
+**UC-16: Xóa tài khoản (Admin)**
+
+- **Actor:** Admin
+- **Tiền điều kiện:** Đã đăng nhập với quyền admin
+- **Luồng chính:**
+  1. Admin chọn tài khoản cần xóa.
+  2. Backend xóa tài khoản, lưu archive.
+  3. Thông báo kết quả.
+- **Luồng phụ:** Tài khoản đã bị xóa trước đó.
+- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
+- **Bảo mật:** Phân quyền, logging thao tác.
+
+---
+
+**UC-17: Xem hồ sơ đã xóa (Admin)**
+
+- **Actor:** Admin
+- **Tiền điều kiện:** Đã đăng nhập với quyền admin
+- **Luồng chính:**
+  1. Admin truy cập danh sách hồ sơ đã xóa.
+  2. Backend truy vấn danh sách archive.
+  3. Hiển thị danh sách, thao tác khôi phục/xem chi tiết.
+- **Luồng phụ:** Không có hồ sơ nào, hiển thị thông báo.
+- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
+- **Bảo mật:** Phân quyền, logging thao tác.
+
+### 3.5. Biểu Đồ Phân Rã Chức Năng
+
+Biểu đồ phân rã chức năng (Functional Decomposition Diagram - FDD) giúp trực quan hóa cấu trúc hệ thống, phân nhóm chức năng lớn, các module con, mối quan hệ và luồng nghiệp vụ. Dưới đây là phân rã chuẩn cho hệ thống xác thực người dùng qua khuôn mặt tích hợp AI, bám sát thực tế codebase và nghiệp vụ ngân hàng hiện đại.
+
+#### 3.5.1. Biểu Đồ Phân Rã Chức Năng (Mermaid)
+
+```mermaid
+flowchart TD
+  SYS[HỆ THỐNG NGÂN HÀNG TÍCH HỢP AI]
+
+  subgraph QLTA[1. Quản lý tài khoản]
+    QLTA1[1.1 Đăng ký tài khoản (UC-01)]
+    QLTA2[1.2 Duyệt tài khoản (UC-12)]
+    QLTA3[1.3 Từ chối tài khoản (UC-13)]
+    QLTA4[1.4 Khóa tài khoản (UC-14)]
+    QLTA5[1.5 Mở khóa tài khoản (UC-14)]
+    QLTA6[1.6 Xóa tài khoản (UC-16)]
+  end
+
+  subgraph XTN[2. Xác thực người dùng]
+    XTN1[2.1 Đăng nhập bằng mật khẩu (UC-02)]
+    XTN2[2.2 Đăng nhập bằng khuôn mặt (UC-03)]
+    XTN21[2.2.1 Kiểm tra liveness]
+    XTN22[2.2.2 Trích xuất/so khớp embedding]
+    XTN3[2.3 Đăng xuất (UC-10)]
+  end
+
+  subgraph KYC[3. KYC & Hồ sơ cá nhân]
+    KYC1[3.1 Upload CCCD]
+    KYC2[3.2 OCR trích xuất thông tin CCCD (UC-05)]
+    KYC3[3.3 Đối chiếu khuôn mặt CCCD với ảnh live]
+    KYC4[3.4 Cập nhật khuôn mặt mới (UC-06)]
+    KYC5[3.5 Đổi mật khẩu (UC-07)]
+    KYC6[3.6 Xem thông tin hồ sơ, số dư (UC-04)]
+  end
+
+  subgraph GD[4. Giao dịch tài chính]
+    GD1[4.1 Tra cứu tài khoản nhận]
+    GD2[4.2 Chuyển khoản nội địa (UC-08)]
+    GD3[4.3 Xem lịch sử giao dịch (UC-09)]
+  end
+
+  subgraph QT[5. Quản trị hệ thống]
+    QT1[5.1 Xem danh sách người dùng (UC-11)]
+    QT2[5.2 Lọc theo trạng thái tài khoản]
+    QT3[5.3 Reset dữ liệu khuôn mặt (UC-15)]
+    QT4[5.4 Xem danh sách hồ sơ đã xóa (UC-17)]
+  end
+
+  SYS --> QLTA
+  SYS --> XTN
+  SYS --> KYC
+  SYS --> GD
+  SYS --> QT
+
+  XTN2 --> XTN21
+  XTN2 --> XTN22
+```
+
+#### 3.5.2. Giải Thích Ý Nghĩa Và Hướng Dẫn Đọc
+
+- **SYS:** Toàn bộ hệ thống ngân hàng tích hợp AI, là node gốc.
+- **Các nhóm chức năng:**
+  - 1. Quản lý tài khoản: Đăng ký, duyệt, từ chối, khóa/mở khóa, xóa, lưu archive.
+  - 2. Xác thực người dùng: Đăng nhập (mật khẩu/khuôn mặt), kiểm tra liveness, so khớp embedding, đăng xuất.
+  - 3. KYC & Hồ sơ cá nhân: Upload CCCD, OCR, đối chiếu khuôn mặt, cập nhật khuôn mặt, đổi mật khẩu, xem hồ sơ/số dư.
+  - 4. Giao dịch tài chính: Tra cứu, chuyển khoản, xem lịch sử.
+  - 5. Quản trị hệ thống: Quản lý, lọc, reset, xem hồ sơ đã xóa.
+- **Các node con:** Chính là các chức năng nghiệp vụ, liên kết trực tiếp với Use Case và file code thực tế.
+- **Mũi tên:** Thể hiện quan hệ phân rã, phụ thuộc chức năng.
+
+#### 3.5.3. Liên Kết Codebase Và Bảo Mật
+
+- Mỗi node con đều có endpoint, API, UI tương ứng trong codebase (đã liệt kê ở các mục trước).
+- Các chức năng liên quan AI backend (nhận diện, liveness, OCR) đều kiểm tra bảo mật, logging, xác thực JWT.
+- Các thao tác quản trị chỉ cho phép actor admin, kiểm soát phân quyền.
+
+#### 3.5.4. Tiểu Kết
+
+Biểu đồ phân rã chức năng là tài liệu sống, giúp phát triển, kiểm thử, bảo trì, mở rộng hệ thống, đảm bảo mọi chức năng đều được kiểm soát, không bỏ sót, dễ truy vết và xác thực với code thực tế.
+A -->|Đổi mật khẩu| B7(UC-07)
+A -->|Chuyển khoản| B8(UC-08)
+A -->|Xem lịch sử| B9(UC-09)
+A -->|Đăng xuất| B10(UC-10)
+Admin[Quản trị hệ thống] -->|Xem danh sách| C1(UC-11)
+Admin -->|Duyệt tài khoản| C2(UC-12)
+Admin -->|Từ chối tài khoản| C3(UC-13)
+Admin -->|Khóa/Mở khóa| C4(UC-14)
+Admin -->|Reset khuôn mặt| C5(UC-15)
+Admin -->|Xóa tài khoản| C6(UC-16)
+Admin -->|Xem hồ sơ đã xóa| C7(UC-17)
+
+### 3.6. Luồng Nghiệp Vụ Chính
+
+Luồng nghiệp vụ chính (Main Business Flows) được mô hình hóa bằng các sequence diagram, giúp minh họa chi tiết các bước tương tác giữa actor, frontend, backend PHP, AI backend và database. Dưới đây là đầy đủ sequence diagram cho 17 Use Case, bám sát code thực tế.
+
+#### UC-01: Đăng ký tài khoản
+
+```mermaid
+sequenceDiagram
+  participant Guest as "Khách vãng lai"
+  participant Frontend
+  participant BackendPHP
+  participant AIBackend
+  participant Database
+  Guest->>Frontend: Truy cập giao diện đăng ký
+  Frontend->>Guest: Hiển thị form, yêu cầu nhập thông tin, chụp ảnh
+  Guest->>Frontend: Nhập thông tin, gửi ảnh khuôn mặt
+  Frontend->>AIBackend: POST /extract-encoding
+  AIBackend->>Frontend: Trả về face encoding
+  Frontend->>BackendPHP: POST /register.php
+  BackendPHP->>Database: Lưu thông tin, mã hóa dữ liệu
+  BackendPHP->>Frontend: Thông báo kết quả
+  Frontend->>Guest: Hiển thị thông báo
+```
+
+#### UC-02: Đăng nhập bằng mật khẩu
+
+```mermaid
+sequenceDiagram
+  participant Guest as "Khách vãng lai"
+  participant Frontend
+  participant BackendPHP
+  participant Database
+  Guest->>Frontend: Truy cập giao diện đăng nhập
+  Frontend->>Guest: Nhập username, password
+  Frontend->>BackendPHP: POST /login-password.php
+  BackendPHP->>Database: Kiểm tra thông tin
+  BackendPHP->>Frontend: Kết quả xác thực
+  Frontend->>Guest: Chuyển hướng vào hệ thống
+```
+
+#### UC-03: Đăng nhập bằng khuôn mặt
+
+```mermaid
+sequenceDiagram
+  participant Guest as "Khách vãng lai"
+  participant Frontend
+  participant BackendPHP
+  participant AIBackend
+  participant Database
+  Guest->>Frontend: Truy cập giao diện đăng nhập
+  Frontend->>Guest: Yêu cầu camera, chụp ảnh
+  Guest->>Frontend: Gửi ảnh khuôn mặt
+  Frontend->>AIBackend: POST /liveness-check
+  AIBackend->>Frontend: Kết quả liveness
+  Frontend->>AIBackend: POST /verify-face
+  AIBackend->>BackendPHP: Trả kết quả so khớp
+  BackendPHP->>Database: Đối chiếu encoding
+  BackendPHP->>Frontend: Xác thực thành công/thất bại
+  Frontend->>Guest: Chuyển hướng vào hệ thống
+```
+
+#### UC-04: Xem thông tin tài khoản
+
+```mermaid
+sequenceDiagram
+  participant User as "Người dùng"
+  participant Frontend
+  participant BackendPHP
+  participant Database
+  User->>Frontend: Truy cập dashboard
+  Frontend->>BackendPHP: GET /user/profile.php
+  BackendPHP->>Database: Truy vấn thông tin
+  BackendPHP->>Frontend: Trả về thông tin
+  Frontend->>User: Hiển thị thông tin
+```
+
+#### UC-05: Cập nhật KYC (upload CCCD, OCR)
+
+```mermaid
+sequenceDiagram
+  participant User as "Người dùng"
+  participant Frontend
+  participant BackendPHP
+  participant AIBackend
+  participant Database
+  User->>Frontend: Truy cập chức năng KYC
+  Frontend->>User: Yêu cầu upload ảnh CCCD
+  User->>Frontend: Upload ảnh
+  Frontend->>AIBackend: POST /ocr
+  AIBackend->>Frontend: Trả về thông tin giấy tờ
+  Frontend->>BackendPHP: POST /user/profile.php
+  BackendPHP->>Database: Lưu thông tin giấy tờ
+  BackendPHP->>Frontend: Thông báo kết quả
+  Frontend->>User: Hiển thị thông tin
+```
+
+#### UC-06: Cập nhật khuôn mặt
+
+```mermaid
+sequenceDiagram
+  participant User as "Người dùng"
+  participant Frontend
+  participant BackendPHP
+  participant AIBackend
+  participant Database
+  User->>Frontend: Truy cập chức năng cập nhật khuôn mặt
+  Frontend->>User: Yêu cầu chụp ảnh mới
+  User->>Frontend: Gửi ảnh
+  Frontend->>AIBackend: POST /extract-encoding
+  AIBackend->>Frontend: Trả về encoding
+  Frontend->>BackendPHP: POST /user/update-face.php
+  BackendPHP->>Database: Cập nhật dữ liệu
+  BackendPHP->>Frontend: Thông báo kết quả
+  Frontend->>User: Hiển thị thông báo
+```
+
+#### UC-07: Đổi mật khẩu
+
+```mermaid
+sequenceDiagram
+  participant User as "Người dùng"
+  participant Frontend
+  participant BackendPHP
+  participant Database
+  User->>Frontend: Truy cập chức năng đổi mật khẩu
+  Frontend->>User: Nhập mật khẩu hiện tại, mới
+  Frontend->>BackendPHP: POST /user/change-password.php
+  BackendPHP->>Database: Kiểm tra, cập nhật mật khẩu
+  BackendPHP->>Frontend: Thông báo kết quả
+  Frontend->>User: Hiển thị thông báo
+```
+
+#### UC-08: Chuyển khoản nội địa
+
+```mermaid
+sequenceDiagram
+  participant User as "Người dùng"
+  participant Frontend
+  participant BackendPHP
+  participant Database
+  User->>Frontend: Truy cập chức năng chuyển khoản
+  Frontend->>User: Nhập thông tin tài khoản nhận, số tiền
+  Frontend->>BackendPHP: POST /user/profile.php (giao dịch)
+  BackendPHP->>Database: Kiểm tra số dư, cập nhật giao dịch
+  BackendPHP->>Frontend: Thông báo kết quả
+  Frontend->>User: Hiển thị trạng thái giao dịch
+```
+
+#### UC-09: Xem lịch sử giao dịch
+
+```mermaid
+sequenceDiagram
+  participant User as "Người dùng"
+  participant Frontend
+  participant BackendPHP
+  participant Database
+  User->>Frontend: Truy cập lịch sử giao dịch
+  Frontend->>BackendPHP: GET /user/profile.php (lịch sử)
+  BackendPHP->>Database: Truy vấn lịch sử
+  BackendPHP->>Frontend: Trả về dữ liệu
+  Frontend->>User: Hiển thị lịch sử
+```
+
+#### UC-10: Đăng xuất
+
+```mermaid
+sequenceDiagram
+  participant User as "Người dùng"
+  participant Frontend
+  participant BackendPHP
+  User->>Frontend: Nhấn nút đăng xuất
+  Frontend->>BackendPHP: POST /logout.php
+  BackendPHP->>Frontend: Xóa session
+  Frontend->>User: Chuyển về trang đăng nhập
+```
+
+#### UC-11: Xem danh sách người dùng
+
+```mermaid
+sequenceDiagram
+  participant Admin
+  participant Frontend
+  participant BackendPHP
+  participant Database
+  Admin->>Frontend: Truy cập giao diện quản trị
+  Frontend->>BackendPHP: GET /admin/users.php
+  BackendPHP->>Database: Truy vấn danh sách
+  BackendPHP->>Frontend: Trả về danh sách
+  Frontend->>Admin: Hiển thị danh sách
+```
+
+#### UC-12: Duyệt tài khoản
+
+```mermaid
+sequenceDiagram
+  participant Admin
+  participant Frontend
+  participant BackendPHP
+  participant Database
+  Admin->>Frontend: Chọn tài khoản cần duyệt
+  Frontend->>BackendPHP: POST /admin/users.php (duyệt)
+  BackendPHP->>Database: Cập nhật trạng thái
+  BackendPHP->>Frontend: Thông báo kết quả
+  Frontend->>Admin: Hiển thị trạng thái mới
+```
+
+#### UC-13: Từ chối tài khoản
+
+```mermaid
+sequenceDiagram
+  participant Admin
+  participant Frontend
+  participant BackendPHP
+  participant Database
+  Admin->>Frontend: Chọn tài khoản cần từ chối
+  Frontend->>BackendPHP: POST /admin/users.php (từ chối)
+  BackendPHP->>Database: Cập nhật trạng thái
+  BackendPHP->>Frontend: Thông báo kết quả
+  Frontend->>Admin: Hiển thị trạng thái mới
+```
+
+#### UC-14: Khóa/Mở khóa tài khoản
+
+```mermaid
+sequenceDiagram
+  participant Admin
+  participant Frontend
+  participant BackendPHP
+  participant Database
+  Admin->>Frontend: Chọn tài khoản cần khóa/mở khóa
+  Frontend->>BackendPHP: POST /admin/toggle-lock.php
+  BackendPHP->>Database: Cập nhật trạng thái
+  BackendPHP->>Frontend: Thông báo kết quả
+  Frontend->>Admin: Hiển thị trạng thái mới
+```
+
+#### UC-15: Reset dữ liệu khuôn mặt
+
+```mermaid
+sequenceDiagram
+  participant Admin
+  participant Frontend
+  participant BackendPHP
+  participant Database
+  Admin->>Frontend: Chọn tài khoản cần reset khuôn mặt
+  Frontend->>BackendPHP: POST /admin/reset-face.php
+  BackendPHP->>Database: Xóa dữ liệu khuôn mặt
+  BackendPHP->>Frontend: Thông báo kết quả
+  Frontend->>Admin: Hiển thị thông báo
+```
+
+#### UC-16: Xóa tài khoản
+
+```mermaid
+sequenceDiagram
+  participant Admin
+  participant Frontend
+  participant BackendPHP
+  participant Database
+  Admin->>Frontend: Chọn tài khoản cần xóa
+  Frontend->>BackendPHP: POST /admin/users.php (xóa)
+  BackendPHP->>Database: Xóa tài khoản, lưu archive
+  BackendPHP->>Frontend: Thông báo kết quả
+  Frontend->>Admin: Hiển thị thông báo
+```
+
+#### 3.6.x. Hướng Dẫn Đọc, Bảo Mật, Tiểu Kết
+
+- **participant:** Đại diện cho actor, thành phần hệ thống (frontend, backend PHP, AI backend, database).
+- **Mũi tên:** Thể hiện luồng dữ liệu, tương tác, gọi API, phản hồi.
+- **Các bước:** Bám sát logic thực tế, liên kết với codebase, endpoint, UI.
+
+**Lưu ý bảo mật, kiểm thử:**
+
+- Các luồng xác thực, KYC, giao dịch đều kiểm tra JWT, session, logging, mã hóa dữ liệu, kiểm thử liveness, OCR, phân quyền.
+- Các thao tác quản trị chỉ cho phép actor admin, kiểm soát phân quyền.
+
+**Tiểu kết:**
+
+Các sequence diagram trên là tài liệu sống, giúp phát triển, kiểm thử, bảo trì, mở rộng hệ thống, đảm bảo mọi luồng nghiệp vụ đều được kiểm soát, xác thực với code thực tế và đáp ứng yêu cầu bảo mật, pháp lý.
+
+---
+
+### 3.7. Yêu Cầu Chức Năng Và Phi Chức Năng
+
+#### 3.7.1. Yêu cầu chức năng
+
+Hệ thống phải đáp ứng đầy đủ các chức năng nghiệp vụ, được xác thực qua code thực tế, bao gồm:
+
+**1. Đăng ký tài khoản:**
+
+- Người dùng nhập thông tin, chụp ảnh khuôn mặt, gửi lên frontend.
+- Frontend gọi AI backend để trích xuất face encoding, kiểm tra trùng lặp.
+- Backend lưu thông tin, mã hóa dữ liệu vào database.
+
+**2. Đăng nhập:**
+
+- Hỗ trợ cả mật khẩu và khuôn mặt.
+- Kiểm tra liveness, xác thực face encoding qua AI backend.
+- Cấp JWT, session, ghi log đăng nhập.
+
+**3. Cập nhật thông tin, KYC, OCR:**
+
+- Người dùng cập nhật hồ sơ, upload giấy tờ tùy thân.
+- Frontend gọi AI backend để OCR, trích xuất thông tin giấy tờ.
+- Backend lưu thông tin, kiểm tra hợp lệ, ghi log.
+
+**4. Đổi mật khẩu, cập nhật khuôn mặt:**
+
+- Đổi mật khẩu, kiểm tra xác thực cũ, mã hóa mới.
+- Cập nhật khuôn mặt, frontend gọi AI backend để lấy encoding mới.
+
+**5. Quản lý giao dịch:**
+
+- Chuyển khoản, xem lịch sử giao dịch, xác thực hai lớp, ghi log.
+
+**6. Quản trị hệ thống:**
+
+- Duyệt, từ chối, khóa/mở khóa, reset khuôn mặt, xóa tài khoản, xem hồ sơ đã xóa qua các chức năng quản trị.
+- Phân quyền, kiểm soát truy cập.
+
+**7. Tích hợp AI backend:**
+
+- Nhận diện khuôn mặt, kiểm tra liveness, OCR giấy tờ, trả kết quả qua API RESTful.
+
+**8. Giao tiếp API RESTful:**
+
+- Frontend, backend PHP, AI backend trao đổi qua HTTP, bảo mật JWT, kiểm soát CORS, xác thực token.
+
+**9. Logging, giám sát:**
+
+- Ghi nhận mọi thao tác xác thực, thay đổi dữ liệu, truy cập admin vào nhật ký hệ thống.
+
+#### 3.7.2. Yêu cầu phi chức năng
+
+Hệ thống phải đảm bảo các yêu cầu phi chức năng nâng cao, học thuật, thực tiễn:
+
+**1. Bảo mật:**
+
+- Dữ liệu sinh trắc học (face encoding), thông tin cá nhân, nhật ký xác thực phải được mã hóa (AES, SHA256), phân quyền truy cập nghiêm ngặt.
+- Sử dụng JWT, session, kiểm soát truy cập.
+- Giao tiếp HTTPS, chống tấn công CSRF, XSS, SQL Injection.
+- Lưu log mọi thao tác quan trọng, cảnh báo truy cập bất thường.
+
+**2. Hiệu năng:**
+
+- Thời gian xác thực khuôn mặt, liveness, OCR < 2 giây/lượt (đo thực tế qua log).
+- Hệ thống chịu tải tối thiểu 1000 user/ngày, tối ưu truy vấn DB, AI backend đa tiến trình.
+
+**3. Khả năng mở rộng, bảo trì:**
+
+- Thiết kế module hóa (frontend, backend PHP, AI backend), dễ nâng cấp, tích hợp dịch vụ ngoài (ví dụ: Google Vision, hệ thống ngân hàng).
+- Cấu hình động qua file, hỗ trợ backup, phục hồi dữ liệu, giám sát trạng thái hệ thống.
+
+**4. Tuân thủ pháp lý:**
+
+- Đáp ứng quy định về bảo vệ dữ liệu cá nhân (GDPR, Nghị định 13/2023/NĐ-CP Việt Nam).
+- Lưu trữ, xử lý dữ liệu đúng mục đích, xóa dữ liệu khi người dùng yêu cầu.
+
+**5. Trải nghiệm người dùng:**
+
+- Giao diện thân thiện, hỗ trợ đa thiết bị, phản hồi nhanh, thông báo rõ ràng.
+- Hỗ trợ tiếng Việt, tiếng Anh, dễ dàng mở rộng ngôn ngữ.
+
+**6. Khả năng kiểm thử, giám sát:**
+
+- Hỗ trợ kiểm thử tự động, ghi nhận log, cảnh báo lỗi, giám sát hiệu năng.
+- Dễ dàng truy vết, phân tích sự cố qua log, dashboard quản trị.
+
+### 3.8. Ràng Buộc Và Giả Định
+
+**Ràng buộc:**
+
+- Thiết bị người dùng phải hỗ trợ camera, internet ổn định.
+- Dữ liệu khuôn mặt, embedding phải được mã hóa, lưu trữ an toàn.
+- Hệ thống phải tuân thủ các quy định pháp lý về bảo mật dữ liệu cá nhân.
+- Chỉ cho phép truy cập, chỉnh sửa dữ liệu với tài khoản có phân quyền phù hợp.
+
+**Giả định:**
+
+- Người dùng hợp tác, cung cấp ảnh khuôn mặt rõ nét, giấy tờ hợp lệ.
+- Hệ thống AI backend, OCR hoạt động ổn định, chính xác.
+- Các bên liên quan phối hợp chặt chẽ trong quá trình triển khai, vận hành.
+
+### 3.9. Tiểu Kết Chương 3
+
+Chương 3 đã cập nhật, phân tích đầy đủ các bên liên quan, danh sách Use Case chuẩn, sơ đồ, đặc tả, phân rã chức năng, luồng nghiệp vụ, yêu cầu, ràng buộc và giả định. Tất cả đều được đối chiếu xác thực với code thực tế, đảm bảo bài tiểu luận vừa học thuật, vừa thực tiễn, logic, đúng chuẩn.
+
+Bên liên quan (stakeholders) là những cá nhân, tổ chức có quyền lợi, nghĩa vụ hoặc bị ảnh hưởng bởi hệ thống xác thực người dùng qua nhận diện khuôn mặt. Việc xác định đúng các bên liên quan giúp đảm bảo hệ thống đáp ứng đầy đủ nhu cầu thực tiễn, tối ưu hóa hiệu quả triển khai. Các bên liên quan chính gồm:
+
+- **Người dùng cuối:** Cá nhân sử dụng hệ thống để xác thực danh tính khi truy cập dịch vụ.
+- **Quản trị viên hệ thống:** Quản lý, vận hành, giám sát, xử lý sự cố, cập nhật dữ liệu người dùng.
+- **Nhà phát triển phần mềm:** Thiết kế, xây dựng, bảo trì, nâng cấp hệ thống.
+- **Tổ chức/doanh nghiệp triển khai:** Đơn vị sở hữu, vận hành hệ thống, chịu trách nhiệm pháp lý, bảo mật dữ liệu.
+- **Cơ quan quản lý nhà nước:** Ban hành quy định pháp lý, kiểm tra, giám sát việc tuân thủ bảo mật, quyền riêng tư.
+- **Đối tác tích hợp:** Các hệ thống, dịch vụ bên ngoài cần kết nối, chia sẻ dữ liệu xác thực.
