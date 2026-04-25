@@ -1,3 +1,60 @@
+#BẢNG PHÂN CÔNG CHI TIẾT
+### Bảng tiến trình thực hiện dự án chi tiết (24/01/2026 – 22/04/2026)
+
+| STT | Ngày bắt đầu | Ngày kết thúc | Công việc cụ thể                | Mô tả chi tiết                                            | BA  | BE  | FE  | Tester |
+| --- | ------------ | ------------- | ------------------------------- | --------------------------------------------------------- | --- | --- | --- | ------ |
+| 1   | 24/01        | 24/01         | Khởi động dự án                 | Họp nhóm lần 1, giới thiệu thành viên, phổ biến mục tiêu  | X   |     |     |        |
+| 2   | 25/01        | 25/01         | Thu thập yêu cầu                | BA làm việc với khách hàng, ghi nhận yêu cầu ban đầu      | X   |     |     |        |
+| 3   | 26/01        | 26/01         | Phân tích nghiệp vụ             | Vẽ sơ đồ Use Case, xác định actor, chức năng chính        | X   |     |     |        |
+| 4   | 27/01        | 27/01         | Họp nhóm lần 2                  | Thống nhất phạm vi, phân chia vai trò sơ bộ               | X   | X   | X   |        |
+| 5   | 28/01        | 28/01         | Lập kế hoạch tổng thể           | Lập timeline, xác định milestone, phân bổ nguồn lực       | X   | X   | X   |        |
+| 6   | 29/01        | 30/01         | Viết đặc tả Use Case            | Mô tả chi tiết từng chức năng, điều kiện, luồng chính/phụ | X   |     |     |        |
+| 7   | 31/01        | 01/02         | Thiết kế sơ bộ giao diện        | Vẽ wireframe, xác định layout, màu sắc, trải nghiệm       | X   |     | X   |        |
+| 8   | 02/02        | 03/02         | Thiết kế sơ bộ CSDL             | Vẽ ERD, xác định bảng, quan hệ, thuộc tính                | X   | X   |     |        |
+| 9   | 04/02        | 05/02         | Viết tài liệu đặc tả chi tiết   | Đặc tả chức năng, phi chức năng, báo cáo khách hàng       | X   |     |     |        |
+| 10  | 06/02        | 07/02         | Review đặc tả & thiết kế        | Họp nhóm, chỉnh sửa tài liệu, thống nhất giải pháp        | X   | X   | X   |        |
+| 11  | 08/02        | 08/02         | Chuẩn bị môi trường code        | Cài đặt Python, Node.js, VSCode, Git, tạo repo            |     | X   | X   |        |
+| 12  | 09/02        | 09/02         | Khởi tạo project backend        | Tạo cấu trúc thư mục, file main.py, requirements.txt      |     | X   |     |        |
+| 13  | 10/02        | 10/02         | Khởi tạo project frontend       | Tạo cấu trúc thư mục, file index.html, assets             |     |     | X   |        |
+| 14  | 11/02        | 11/02         | Cấu hình CI/CD                  | Thiết lập Github Actions, auto deploy, kiểm thử tự động   |     | X   | X   |        |
+| 15  | 12/02        | 12/02         | Thiết lập DB ban đầu            | Tạo file schema.sql, migrate lên SQLite                   |     | X   |     |        |
+| 16  | 13/02        | 13/02         | Tạo tài khoản test              | Thêm user mẫu, dữ liệu KYC, ảnh test                      | X   | X   |     |        |
+| 17  | 14/02        | 14/02         | Viết tài liệu hướng dẫn dev     | Chuẩn hóa quy tắc code, đặt tên, commit                   | X   | X   | X   |        |
+| 18  | 15/02        | 16/02         | Phát triển module đăng ký       | API register, validate, lưu DB, trả về trạng thái         |     | X   |     |        |
+| 19  | 17/02        | 18/02         | Phát triển module xác thực      | API login-password, login-face, session                   |     | X   |     |        |
+| 20  | 19/02        | 20/02         | Phát triển module KYC           | API upload CCCD, OCR, lưu thông tin                       |     | X   |     |        |
+| 21  | 21/02        | 22/02         | Phát triển module giao dịch     | API chuyển khoản, kiểm tra số dư, rollback                |     | X   |     |        |
+| 22  | 23/02        | 24/02         | Phát triển module admin         | API duyệt/từ chối user, khóa/mở khóa, xóa user            |     | X   |     |        |
+| 23  | 25/02        | 26/02         | Viết unit test backend          | Test logic nghiệp vụ, kiểm tra API                        |     | X   |     | X      |
+| 24  | 27/02        | 29/02         | Refactor, tối ưu backend        | Chuẩn hóa code, tối ưu hiệu năng, bảo mật                 |     | X   |     |        |
+| 25  | 01/03        | 02/03         | Phát triển giao diện đăng ký    | Form đăng ký, upload ảnh, validate FE                     |     |     | X   |        |
+| 26  | 03/03        | 04/03         | Phát triển giao diện đăng nhập  | Form login, kết nối API, xử lý lỗi                        |     |     | X   |        |
+| 27  | 05/03        | 06/03         | Phát triển giao diện KYC        | Form upload CCCD, hiển thị kết quả OCR                    |     |     | X   |        |
+| 28  | 07/03        | 08/03         | Phát triển giao diện giao dịch  | Form chuyển khoản, xác nhận, thông báo                    |     |     | X   |        |
+| 29  | 09/03        | 10/03         | Phát triển giao diện admin      | Quản lý user, duyệt, khóa, xóa                            |     |     | X   |        |
+| 30  | 11/03        | 12/03         | Tích hợp FE-BE đăng ký          | FE gọi API register, xử lý response                       | X   | X   | X   |        |
+| 31  | 13/03        | 14/03         | Tích hợp FE-BE xác thực         | FE gọi API login, session, lỗi                            | X   | X   | X   |        |
+| 32  | 15/03        | 15/03         | Tích hợp FE-BE KYC              | FE gọi API upload CCCD, nhận kết quả                      | X   | X   | X   |        |
+| 33  | 16/03        | 16/03         | Tích hợp FE-BE giao dịch        | FE gọi API chuyển khoản, nhận thông báo                   | X   | X   | X   |        |
+| 34  | 17/03        | 17/03         | Tích hợp FE-BE admin            | FE gọi API quản trị, xác nhận thao tác                    | X   | X   | X   |        |
+| 35  | 18/03        | 19/03         | Viết test case chức năng        | BA viết test case, mô tả đầu vào, kết quả                 | X   |     |     |        |
+| 36  | 20/03        | 21/03         | Thực thi kiểm thử manual        | Tester chạy test case, ghi nhận bug                       |     |     |     | X      |
+| 37  | 22/03        | 23/03         | Kiểm thử API tự động            | Viết script Postman, kiểm tra response                    |     | X   |     | X      |
+| 38  | 24/03        | 25/03         | Kiểm thử giao diện              | Selenium test, kiểm tra UI/UX                             |     |     | X   | X      |
+| 39  | 26/03        | 27/03         | Tổng hợp bug, fix lỗi           | Thống kê lỗi, phân loại, BE/FE sửa lỗi                    | X   | X   | X   | X      |
+| 40  | 28/03        | 29/03         | Kiểm thử hiệu năng              | JMeter, đo thời gian phản hồi, tải đồng thời              |     | X   | X   | X      |
+| 41  | 30/03        | 31/03         | Kiểm thử bảo mật                | Thử SQLi, XSS, brute-force, phân quyền                    | X   | X   | X   | X      |
+| 42  | 01/04        | 02/04         | Kiểm thử rollback, đồng thời    | Thử lỗi chuyển khoản, thao tác nhiều user                 |     | X   | X   | X      |
+| 43  | 03/04        | 05/04         | Viết tài liệu hướng dẫn sử dụng | Soạn user manual, hướng dẫn cài đặt, sử dụng              | X   |     | X   |        |
+| 44  | 06/04        | 08/04         | Chuẩn bị tài liệu báo cáo       | Viết báo cáo, tổng hợp kết quả kiểm thử                   | X   | X   | X   | X      |
+| 45  | 09/04        | 10/04         | Chuẩn bị slide thuyết trình     | Thiết kế slide, phân chia nội dung                        | X   |     | X   |        |
+| 46  | 11/04        | 12/04         | Hoàn thiện demo sản phẩm        | Chạy thử toàn bộ, quay video demo                         | X   | X   | X   | X      |
+| 47  | 13/04        | 13/04         | Họp nhóm tổng duyệt             | Chạy thử, kiểm tra checklist, phân công báo cáo           | X   | X   | X   | X      |
+| 48  | 14/04        | 15/04         | Chỉnh sửa, hoàn thiện cuối      | Fix lỗi nhỏ, hoàn thiện tài liệu, chuẩn bị nộp            | X   | X   | X   | X      |
+| 49  | 16/04        | 18/04         | Tổng duyệt lần cuối             | Chạy thử toàn bộ, kiểm tra lần cuối                       | X   | X   | X   | X      |
+| 50  | 19/04        | 22/04         | Báo cáo chính thức              | Thuyết trình, trả lời câu hỏi, nộp sản phẩm               | X   | X   | X   | X      |
+
+
 # TIỂU LUẬN
 
 ## Phần Mở Đầu
