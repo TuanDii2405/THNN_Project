@@ -416,253 +416,251 @@ usecaseDiagram
 Đặc tả Use Case chi tiết giúp làm rõ logic nghiệp vụ, điều kiện, luồng xử lý, ngoại lệ, bảo mật và liên kết trực tiếp với code thực tế. Dưới đây là các đặc tả tiêu biểu, các UC khác có thể trình bày tương tự.
 
 ---
+### 3.4. Đặc Tả UseCase Chi Tiết
 
-**UC-01: Đăng ký tài khoản**
+Đặc tả Use Case chi tiết giúp làm rõ logic nghiệp vụ, điều kiện, luồng xử lý, ngoại lệ, bảo mật và liên kết trực tiếp với code thực tế. Để thuận tiện tra cứu, các UC được trình bày dưới dạng bảng, liên kết trực tiếp với các API/route thực tế trong hệ thống.
 
-- **Actor:** Khách vãng lai, AI backend
-- **Tiền điều kiện:** Chưa có tài khoản, có thiết bị hỗ trợ camera
-- **Luồng chính:**
-  1. Người dùng truy cập giao diện đăng ký.
-  2. Nhập thông tin, chụp ảnh khuôn mặt.
-  3. Ảnh gửi lên AI backend để trích xuất face encoding.
-  4. Backend kiểm tra hợp lệ, lưu thông tin, mã hóa dữ liệu.
-  5. Thông báo kết quả đăng ký thành công/thất bại.
-- **Luồng phụ:** Username đã tồn tại, ảnh không hợp lệ, yêu cầu nhập lại.
-- **Ngoại lệ:** Lỗi kết nối, AI backend không phản hồi, dữ liệu khuôn mặt không nhận diện được.
-- **Bảo mật:** Kiểm tra liveness, mã hóa dữ liệu, logging thao tác.
+#### Đặc tả Use Case nhóm người dùng (tách riêng từng UC)
 
----
+##### UC-01: Đăng ký tài khoản
 
-**UC-02: Đăng nhập bằng mật khẩu**
+| Trường                 | Nội dung                                                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Mã UC                  | UC-01                                                                                                                           |
+| Tên Use Case           | Đăng ký tài khoản                                                                                                               |
+| Actor                  | Khách vãng lai, AI backend                                                                                                      |
+| Tiền điều kiện         | Chưa có tài khoản, có camera                                                                                                    |
+| Luồng chính            | 1. Truy cập đăng ký 2. Nhập thông tin, chụp ảnh 3. Gửi ảnh lên AI backend 4. Backend kiểm tra, lưu, mã hóa 5. Thông báo kết quả |
+| Luồng phụ              | Username tồn tại, ảnh lỗi, nhập lại                                                                                             |
+| Ngoại lệ               | Lỗi kết nối, AI backend không phản hồi, ảnh không nhận diện                                                                     |
+| Bảo mật                | Kiểm tra liveness, mã hóa, logging                                                                                              |
+| Endpoint/API liên quan | /api/register.php, ai-backend/main.py                                                                                           |
 
-- **Actor:** Khách vãng lai
-- **Tiền điều kiện:** Đã có tài khoản, tài khoản chưa bị khóa
-- **Luồng chính:**
-  1. Người dùng nhập username, password.
-  2. Backend xác thực thông tin.
-  3. Nếu hợp lệ, tạo session, chuyển hướng vào hệ thống.
-- **Luồng phụ:** Sai mật khẩu, cho phép thử lại.
-- **Ngoại lệ:** Tài khoản bị khóa, lỗi kết nối.
-- **Bảo mật:** Mã hóa mật khẩu, kiểm soát session, logging.
+##### UC-02: Đăng nhập bằng mật khẩu
 
----
+| Trường                 | Nội dung                                                                    |
+| ---------------------- | --------------------------------------------------------------------------- |
+| Mã UC                  | UC-02                                                                       |
+| Tên Use Case           | Đăng nhập bằng mật khẩu                                                     |
+| Actor                  | Khách vãng lai                                                              |
+| Tiền điều kiện         | Đã có tài khoản, chưa bị khóa                                               |
+| Luồng chính            | 1. Nhập username, password 2. Backend xác thực 3. Tạo session, chuyển hướng |
+| Luồng phụ              | Sai mật khẩu, thử lại                                                       |
+| Ngoại lệ               | Tài khoản bị khóa, lỗi kết nối                                              |
+| Bảo mật                | Mã hóa mật khẩu, kiểm soát session, logging                                 |
+| Endpoint/API liên quan | /api/login-password.php                                                     |
 
-**UC-03: Đăng nhập bằng khuôn mặt**
+##### UC-03: Đăng nhập bằng khuôn mặt
 
-- **Actor:** Khách vãng lai, AI backend
-- **Tiền điều kiện:** Đã đăng ký khuôn mặt, tài khoản chưa bị khóa
-- **Luồng chính:**
-  1. Người dùng truy cập giao diện đăng nhập.
-  2. Hệ thống yêu cầu truy xuất camera, chụp ảnh khuôn mặt.
-  3. Ảnh gửi lên AI backend để nhận diện, kiểm tra liveness.
-  4. Nếu hợp lệ, hệ thống xác thực thành công, chuyển hướng vào hệ thống.
-- **Luồng phụ:** Nếu nhận diện thất bại, cho phép thử lại hoặc chuyển sang xác thực bằng mật khẩu.
-- **Ngoại lệ:** Thiết bị không hỗ trợ camera, lỗi kết nối, dữ liệu khuôn mặt không khớp.
-- **Bảo mật:** Kiểm tra liveness, mã hóa dữ liệu, logging thao tác.
+| Trường                 | Nội dung                                                                                      |
+| ---------------------- | --------------------------------------------------------------------------------------------- |
+| Mã UC                  | UC-03                                                                                         |
+| Tên Use Case           | Đăng nhập bằng khuôn mặt                                                                      |
+| Actor                  | Khách vãng lai, AI backend                                                                    |
+| Tiền điều kiện         | Đã đăng ký khuôn mặt, chưa bị khóa                                                            |
+| Luồng chính            | 1. Truy cập đăng nhập 2. Chụp ảnh 3. Gửi ảnh lên AI backend 4. Backend xác thực, chuyển hướng |
+| Luồng phụ              | Nhận diện thất bại, thử lại, chuyển sang mật khẩu                                             |
+| Ngoại lệ               | Thiết bị không camera, lỗi kết nối, ảnh không khớp                                            |
+| Bảo mật                | Kiểm tra liveness, mã hóa, logging                                                            |
+| Endpoint/API liên quan | /api/login-face.php, ai-backend/main.py                                                       |
 
----
+##### UC-04: Xem thông tin tài khoản
 
-**UC-04: Xem thông tin tài khoản**
+| Trường                 | Nội dung                                                          |
+| ---------------------- | ----------------------------------------------------------------- |
+| Mã UC                  | UC-04                                                             |
+| Tên Use Case           | Xem thông tin tài khoản                                           |
+| Actor                  | Người dùng                                                        |
+| Tiền điều kiện         | Đã đăng nhập                                                      |
+| Luồng chính            | 1. Truy cập dashboard 2. Truy vấn thông tin 3. Hiển thị thông tin |
+| Luồng phụ              | Thông tin thiếu, yêu cầu bổ sung                                  |
+| Ngoại lệ               | Lỗi kết nối, session hết hạn                                      |
+| Bảo mật                | Xác thực JWT, kiểm soát truy cập                                  |
+| Endpoint/API liên quan | /api/user/profile.php                                             |
 
-- **Actor:** Người dùng
-- **Tiền điều kiện:** Đã đăng nhập hệ thống
-- **Luồng chính:**
-  1. Người dùng truy cập dashboard.
-  2. Hệ thống truy vấn thông tin tài khoản.
-  3. Hiển thị thông tin cá nhân, trạng thái xác thực, lịch sử cập nhật.
-- **Luồng phụ:** Thông tin chưa cập nhật đủ, yêu cầu bổ sung.
-- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
-- **Bảo mật:** Xác thực JWT, kiểm soát truy cập.
+##### UC-05: Cập nhật KYC (upload CCCD, OCR)
 
----
+| Trường                 | Nội dung                                                                                  |
+| ---------------------- | ----------------------------------------------------------------------------------------- |
+| Mã UC                  | UC-05                                                                                     |
+| Tên Use Case           | Cập nhật KYC (upload CCCD, OCR)                                                           |
+| Actor                  | Người dùng, AI backend                                                                    |
+| Tiền điều kiện         | Đã đăng nhập                                                                              |
+| Luồng chính            | 1. Truy cập cập nhật KYC 2. Upload ảnh giấy tờ 3. Gửi lên AI backend OCR 4. Lưu thông tin |
+| Luồng phụ              | Ảnh giấy tờ lỗi, upload lại                                                               |
+| Ngoại lệ               | Lỗi kết nối, AI backend không phản hồi                                                    |
+| Bảo mật                | Mã hóa, logging, kiểm soát truy cập                                                       |
+| Endpoint/API liên quan | /api/user/profile.php, ai-backend/main.py                                                 |
 
-**UC-05: Cập nhật KYC (upload CCCD, OCR)**
+##### UC-06: Cập nhật khuôn mặt
 
-- **Actor:** Người dùng, AI backend
-- **Tiền điều kiện:** Đã đăng nhập hệ thống.
-- **Luồng chính:**
-  1. Người dùng truy cập chức năng cập nhật KYC.
-  2. Hệ thống yêu cầu upload ảnh giấy tờ tùy thân.
-  3. Ảnh gửi lên AI backend để OCR, trích xuất thông tin.
-  4. Thông tin giấy tờ được lưu vào hệ thống.
-- **Luồng phụ:** Ảnh giấy tờ không hợp lệ, yêu cầu upload lại.
-- **Ngoại lệ:** Lỗi kết nối, AI backend không phản hồi.
-- **Bảo mật:** Mã hóa dữ liệu, logging thao tác, kiểm soát truy cập.
+| Trường                 | Nội dung                                                                                                                               |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Mã UC                  | UC-06                                                                                                                                  |
+| Tên Use Case           | Cập nhật khuôn mặt                                                                                                                     |
+| Actor                  | Người dùng, AI backend                                                                                                                 |
+| Tiền điều kiện         | Đã đăng nhập                                                                                                                           |
+| Luồng chính            | 1. Truy cập cập nhật khuôn mặt 2. Chụp ảnh mới, gửi AI backend 3. AI trích xuất encoding, trả về backend 4. Backend cập nhật, xác nhận |
+| Luồng phụ              | Ảnh lỗi, chụp lại                                                                                                                      |
+| Ngoại lệ               | Lỗi kết nối, AI backend không phản hồi                                                                                                 |
+| Bảo mật                | Kiểm tra liveness, mã hóa, logging                                                                                                     |
+| Endpoint/API liên quan | /api/user/update-face.php, ai-backend/main.py                                                                                          |
 
----
+##### UC-07: Đổi mật khẩu
 
-**UC-06: Cập nhật khuôn mặt**
+| Trường                 | Nội dung                                                                                            |
+| ---------------------- | --------------------------------------------------------------------------------------------------- |
+| Mã UC                  | UC-07                                                                                               |
+| Tên Use Case           | Đổi mật khẩu                                                                                        |
+| Actor                  | Người dùng                                                                                          |
+| Tiền điều kiện         | Đã đăng nhập                                                                                        |
+| Luồng chính            | 1. Truy cập đổi mật khẩu 2. Nhập mật khẩu cũ/mới 3. Backend xác thực, cập nhật 4. Thông báo kết quả |
+| Luồng phụ              | Mật khẩu mới lỗi, nhập lại                                                                          |
+| Ngoại lệ               | Mật khẩu cũ sai, lỗi kết nối                                                                        |
+| Bảo mật                | Mã hóa mật khẩu, logging                                                                            |
+| Endpoint/API liên quan | /api/user/change-password.php                                                                       |
 
-- **Actor:** Người dùng, AI backend
-- **Tiền điều kiện:** Đã đăng nhập hệ thống
-- **Luồng chính:**
-  1. Người dùng truy cập chức năng cập nhật khuôn mặt.
-  2. Hệ thống yêu cầu chụp ảnh mới, gửi lên AI backend.
-  3. AI backend trích xuất face encoding, trả về backend.
-  4. Backend cập nhật dữ liệu, xác nhận thành công.
-- **Luồng phụ:** Ảnh không hợp lệ, yêu cầu chụp lại.
-- **Ngoại lệ:** Lỗi kết nối, AI backend không phản hồi.
-- **Bảo mật:** Kiểm tra liveness, mã hóa dữ liệu, logging thao tác.
+##### UC-08: Chuyển khoản nội địa
 
----
+| Trường                 | Nội dung                                                                                                                             |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Mã UC                  | UC-08                                                                                                                                |
+| Tên Use Case           | Chuyển khoản nội địa                                                                                                                 |
+| Actor                  | Người dùng                                                                                                                           |
+| Tiền điều kiện         | Đã đăng nhập, đủ số dư                                                                                                               |
+| Luồng chính            | 1. Truy cập chuyển khoản 2. Nhập thông tin nhận, số tiền 3. Backend kiểm tra, xác thực 4. Cập nhật số dư, ghi giao dịch 5. Thông báo |
+| Luồng phụ              | Tài khoản nhận lỗi, số dư thiếu, nhập lại                                                                                            |
+| Ngoại lệ               | Lỗi kết nối, session hết hạn                                                                                                         |
+| Bảo mật                | Xác thực hai lớp, logging                                                                                                            |
+| Endpoint/API liên quan | /api/user/transfer.php                                                                                                               |
 
-**UC-07: Đổi mật khẩu**
+##### UC-09: Xem lịch sử giao dịch
 
-- **Actor:** Người dùng
-- **Tiền điều kiện:** Đã đăng nhập hệ thống
-- **Luồng chính:**
-  1. Người dùng truy cập chức năng đổi mật khẩu.
-  2. Nhập mật khẩu hiện tại, mật khẩu mới.
-  3. Backend xác thực, cập nhật mật khẩu.
-  4. Thông báo kết quả.
-- **Luồng phụ:** Mật khẩu mới không hợp lệ, yêu cầu nhập lại.
-- **Ngoại lệ:** Mật khẩu hiện tại sai, lỗi kết nối.
-- **Bảo mật:** Mã hóa mật khẩu, logging thao tác.
+| Trường                 | Nội dung                                                           |
+| ---------------------- | ------------------------------------------------------------------ |
+| Mã UC                  | UC-09                                                              |
+| Tên Use Case           | Xem lịch sử giao dịch                                              |
+| Actor                  | Người dùng                                                         |
+| Tiền điều kiện         | Đã đăng nhập                                                       |
+| Luồng chính            | 1. Truy cập lịch sử 2. Backend truy vấn 3. Hiển thị danh sách, lọc |
+| Luồng phụ              | Không có giao dịch, thông báo                                      |
+| Ngoại lệ               | Lỗi kết nối, session hết hạn                                       |
+| Bảo mật                | Xác thực JWT, logging                                              |
+| Endpoint/API liên quan | /api/user/history.php                                              |
 
----
+##### UC-10: Đăng xuất
+
+| Trường                 | Nội dung                                                      |
+| ---------------------- | ------------------------------------------------------------- |
+| Mã UC                  | UC-10                                                         |
+| Tên Use Case           | Đăng xuất                                                     |
+| Actor                  | Người dùng                                                    |
+| Tiền điều kiện         | Đã đăng nhập                                                  |
+| Luồng chính            | 1. Nhấn đăng xuất 2. Backend xóa session, chuyển về đăng nhập |
+| Luồng phụ              | Session hết hạn, tự động đăng xuất                            |
+| Ngoại lệ               | Lỗi kết nối                                                   |
+| Bảo mật                | Xóa session, logging                                          |
+| Endpoint/API liên quan | /api/logout.php                                               |
+
+##### UC-11: Xem danh sách người dùng (Admin)
+
+| Trường                 | Nội dung                                                                                              |
+| ---------------------- | ----------------------------------------------------------------------------------------------------- |
+| Mã UC                  | UC-11                                                                                                 |
+| Tên Use Case           | Xem danh sách người dùng (Admin)                                                                      |
+| Actor                  | Admin                                                                                                 |
+| Tiền điều kiện         | Đã đăng nhập với quyền admin                                                                          |
+| Luồng chính            | 1. Truy cập giao diện quản trị 2. Truy vấn danh sách user 3. Hiển thị danh sách, trạng thái, thao tác |
+| Luồng phụ              | Lọc, tìm kiếm, phân trang                                                                             |
+| Ngoại lệ               | Lỗi kết nối, session hết hạn                                                                          |
+| Bảo mật                | Phân quyền, logging thao tác                                                                          |
+| Endpoint/API liên quan | /api/admin/users.php                                                                                  |
+
+##### UC-12: Duyệt tài khoản (Admin)
+
+| Trường                 | Nội dung                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| Mã UC                  | UC-12                                                                                 |
+| Tên Use Case           | Duyệt tài khoản (Admin)                                                               |
+| Actor                  | Admin                                                                                 |
+| Tiền điều kiện         | Đã đăng nhập với quyền admin                                                          |
+| Luồng chính            | 1. Chọn tài khoản cần duyệt 2. Backend cập nhật trạng thái duyệt 3. Thông báo kết quả |
+| Luồng phụ              | Tài khoản đã được duyệt trước đó                                                      |
+| Ngoại lệ               | Lỗi kết nối, session hết hạn                                                          |
+| Bảo mật                | Phân quyền, logging thao tác                                                          |
+| Endpoint/API liên quan | /api/admin/users.php                                                                  |
+
+##### UC-13: Từ chối tài khoản (Admin)
+
+| Trường                 | Nội dung                                                                                  |
+| ---------------------- | ----------------------------------------------------------------------------------------- |
+| Mã UC                  | UC-13                                                                                     |
+| Tên Use Case           | Từ chối tài khoản (Admin)                                                                 |
+| Actor                  | Admin                                                                                     |
+| Tiền điều kiện         | Đã đăng nhập với quyền admin                                                              |
+| Luồng chính            | 1. Chọn tài khoản cần từ chối 2. Backend cập nhật trạng thái từ chối 3. Thông báo kết quả |
+| Luồng phụ              | Tài khoản đã bị từ chối trước đó                                                          |
+| Ngoại lệ               | Lỗi kết nối, session hết hạn                                                              |
+| Bảo mật                | Phân quyền, logging thao tác                                                              |
+| Endpoint/API liên quan | /api/admin/users.php                                                                      |
+
+##### UC-14: Khóa/Mở khóa tài khoản (Admin)
+
+| Trường                 | Nội dung                                                                               |
+| ---------------------- | -------------------------------------------------------------------------------------- |
+| Mã UC                  | UC-14                                                                                  |
+| Tên Use Case           | Khóa/Mở khóa tài khoản (Admin)                                                         |
+| Actor                  | Admin                                                                                  |
+| Tiền điều kiện         | Đã đăng nhập với quyền admin                                                           |
+| Luồng chính            | 1. Thao tác khóa/mở khóa tài khoản 2. Backend cập nhật trạng thái 3. Thông báo kết quả |
+| Luồng phụ              | Tài khoản đã bị khóa/mở khóa trước đó                                                  |
+| Ngoại lệ               | Lỗi kết nối, session hết hạn                                                           |
+| Bảo mật                | Phân quyền, logging thao tác                                                           |
+| Endpoint/API liên quan | /api/admin/toggle-lock.php                                                             |
+
+##### UC-15: Reset dữ liệu khuôn mặt (Admin)
+
+| Trường                 | Nội dung                                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------------- |
+| Mã UC                  | UC-15                                                                                       |
+| Tên Use Case           | Reset dữ liệu khuôn mặt (Admin)                                                             |
+| Actor                  | Admin                                                                                       |
+| Tiền điều kiện         | Đã đăng nhập với quyền admin                                                                |
+| Luồng chính            | 1. Chọn tài khoản cần reset khuôn mặt 2. Backend xóa dữ liệu khuôn mặt 3. Thông báo kết quả |
+| Luồng phụ              | Tài khoản chưa có dữ liệu khuôn mặt                                                         |
+| Ngoại lệ               | Lỗi kết nối, session hết hạn                                                                |
+| Bảo mật                | Phân quyền, logging thao tác                                                                |
+| Endpoint/API liên quan | /api/admin/reset-face.php                                                                   |
+
+##### UC-16: Xóa tài khoản (Admin)
+
+| Trường                 | Nội dung                                                                             |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| Mã UC                  | UC-16                                                                                |
+| Tên Use Case           | Xóa tài khoản (Admin)                                                                |
+| Actor                  | Admin                                                                                |
+| Tiền điều kiện         | Đã đăng nhập với quyền admin                                                         |
+| Luồng chính            | 1. Chọn tài khoản cần xóa 2. Backend xóa tài khoản, lưu archive 3. Thông báo kết quả |
+| Luồng phụ              | Tài khoản đã bị xóa trước đó                                                         |
+| Ngoại lệ               | Lỗi kết nối, session hết hạn                                                         |
+| Bảo mật                | Phân quyền, logging thao tác                                                         |
+| Endpoint/API liên quan | /api/admin/users.php, deleted_profiles                                               |
+
+##### UC-17: Xem hồ sơ đã xóa (Admin)
+
+| Trường                 | Nội dung                                                                                                              |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Mã UC                  | UC-17                                                                                                                 |
+| Tên Use Case           | Xem hồ sơ đã xóa (Admin)                                                                                              |
+| Actor                  | Admin                                                                                                                 |
+| Tiền điều kiện         | Đã đăng nhập với quyền admin                                                                                          |
+| Luồng chính            | 1. Truy cập danh sách hồ sơ đã xóa 2. Backend truy vấn archive 3. Hiển thị danh sách, thao tác khôi phục/xem chi tiết |
+| Luồng phụ              | Không có hồ sơ nào, thông báo                                                                                         |
+| Ngoại lệ               | Lỗi kết nối, session hết hạn                                                                                          |
+| Bảo mật                | Phân quyền, logging thao tác                                                                                          |
+| Endpoint/API liên quan | /api/admin/users.php, deleted_profiles                                                                                |
 
 
-**UC-08: Chuyển khoản nội địa**
-
-- **Actor:** Người dùng
-- **Tiền điều kiện:** Đã đăng nhập hệ thống, có số dư đủ
-- **Luồng chính:**
-  1. Người dùng truy cập chức năng chuyển khoản.
-  2. Nhập thông tin tài khoản nhận, số tiền.
-  3. Backend kiểm tra số dư, xác thực giao dịch.
-  4. Nếu hợp lệ, cập nhật số dư, ghi nhận giao dịch.
-  5. Thông báo kết quả.
-- **Luồng phụ:** Tài khoản nhận không hợp lệ, số dư không đủ, yêu cầu nhập lại.
-- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
-- **Bảo mật:** Xác thực hai lớp, logging thao tác.
-
----
-
-**UC-09: Xem lịch sử giao dịch**
-
-- **Actor:** Người dùng
-- **Tiền điều kiện:** Đã đăng nhập hệ thống
-- **Luồng chính:**
-  1. Người dùng truy cập chức năng xem lịch sử.
-  2. Backend truy vấn lịch sử giao dịch.
-  3. Hiển thị danh sách giao dịch, lọc theo thời gian.
-- **Luồng phụ:** Không có giao dịch nào, hiển thị thông báo.
-- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
-- **Bảo mật:** Xác thực JWT, logging thao tác.
-
----
-
-**UC-10: Đăng xuất**
-
-- **Actor:** Người dùng
-- **Tiền điều kiện:** Đã đăng nhập hệ thống
-- **Luồng chính:**
-  1. Người dùng nhấn nút đăng xuất.
-  2. Backend xóa session, chuyển về trang đăng nhập.
-- **Luồng phụ:** Session đã hết hạn, tự động đăng xuất.
-- **Ngoại lệ:** Lỗi kết nối.
-- **Bảo mật:** Xóa session, logging thao tác.
-
----
-
-**UC-11: Xem danh sách người dùng (Admin)**
-
-- **Actor:** Admin
-- **Tiền điều kiện:** Đã đăng nhập với quyền admin
-- **Luồng chính:**
-  1. Admin truy cập giao diện quản trị.
-  2. Hệ thống truy vấn danh sách người dùng.
-  3. Hiển thị danh sách, trạng thái, thao tác quản lý.
-- **Luồng phụ:** Lọc, tìm kiếm, phân trang.
-- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
-- **Bảo mật:** Phân quyền, logging thao tác.
-
-
-
----
-
-**UC-12: Duyệt tài khoản (Admin)**
-
-- **Actor:** Admin
-- **Tiền điều kiện:** Đã đăng nhập với quyền admin
-- **Luồng chính:**
-  1. Admin chọn tài khoản cần duyệt trên giao diện.
-  2. Backend cập nhật trạng thái duyệt.
-  3. Thông báo kết quả.
-- **Luồng phụ:** Tài khoản đã được duyệt trước đó.
-- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
-- **Bảo mật:** Phân quyền, logging thao tác.
-
----
-
-**UC-13: Từ chối tài khoản (Admin)**
-
-- **Actor:** Admin
-- **Tiền điều kiện:** Đã đăng nhập với quyền admin
-- **Luồng chính:**
-  1. Admin chọn tài khoản cần từ chối trên giao diện.
-  2. Backend cập nhật trạng thái từ chối.
-  3. Thông báo kết quả.
-- **Luồng phụ:** Tài khoản đã bị từ chối trước đó.
-- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
-- **Bảo mật:** Phân quyền, logging thao tác.
-
----
----
-
-**UC-14: Khóa/Mở khóa tài khoản (Admin)**
-
-- **Actor:** Admin
-- **Tiền điều kiện:** Đã đăng nhập với quyền admin
-- **Luồng chính:**
-  1. Admin thao tác khóa/mở khóa tài khoản trên giao diện.
-  2. Backend cập nhật trạng thái tài khoản.
-  3. Thông báo kết quả.
-- **Luồng phụ:** Tài khoản đã bị khóa/mở khóa trước đó.
-- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
-- **Bảo mật:** Phân quyền, logging thao tác.
-
----
-
-**UC-15: Reset dữ liệu khuôn mặt (Admin)**
-
-- **Actor:** Admin
-- **Tiền điều kiện:** Đã đăng nhập với quyền admin
-- **Luồng chính:**
-  1. Admin chọn tài khoản cần reset khuôn mặt.
-  2. Backend xóa dữ liệu khuôn mặt.
-  3. Thông báo kết quả.
-- **Luồng phụ:** Tài khoản chưa có dữ liệu khuôn mặt.
-- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
-- **Bảo mật:** Phân quyền, logging thao tác.
-
----
-
-**UC-16: Xóa tài khoản (Admin)**
-
-- **Actor:** Admin
-- **Tiền điều kiện:** Đã đăng nhập với quyền admin
-- **Luồng chính:**
-  1. Admin chọn tài khoản cần xóa.
-  2. Backend xóa tài khoản, lưu archive.
-  3. Thông báo kết quả.
-- **Luồng phụ:** Tài khoản đã bị xóa trước đó.
-- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
-- **Bảo mật:** Phân quyền, logging thao tác.
-
----
-
-**UC-17: Xem hồ sơ đã xóa (Admin)**
-
-- **Actor:** Admin
-- **Tiền điều kiện:** Đã đăng nhập với quyền admin
-- **Luồng chính:**
-  1. Admin truy cập danh sách hồ sơ đã xóa.
-  2. Backend truy vấn danh sách archive.
-  3. Hiển thị danh sách, thao tác khôi phục/xem chi tiết.
-- **Luồng phụ:** Không có hồ sơ nào, hiển thị thông báo.
-- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
-- **Bảo mật:** Phân quyền, logging thao tác.
 
 ### 3.5. Biểu Đồ Phân Rã Chức Năng
 
