@@ -521,35 +521,6 @@ usecaseDiagram
 
 ---
 
-**UC-11: Xem danh sách người dùng (Admin)**
-
-- **Actor:** Admin
-- **Tiền điều kiện:** Đã đăng nhập với quyền admin
-- **Luồng chính:**
-  1. Admin truy cập giao diện quản trị.
-  2. Hệ thống truy vấn danh sách người dùng.
-  3. Hiển thị danh sách, trạng thái, thao tác quản lý.
-- **Luồng phụ:** Lọc, tìm kiếm, phân trang.
-- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
-- **Bảo mật:** Phân quyền, logging thao tác.
-
----
-
-**UC-14: Khóa/Mở khóa tài khoản (Admin)**
-
-- **Actor:** Admin
-- **Tiền điều kiện:** Đã đăng nhập với quyền admin
-- **Luồng chính:**
-  1. Admin thao tác khóa/mở khóa tài khoản trên giao diện.
-  2. Backend cập nhật trạng thái tài khoản.
-  3. Thông báo kết quả.
-- **Luồng phụ:** Tài khoản đã bị khóa/mở khóa trước đó.
-- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
-- **Bảo mật:** Phân quyền, logging thao tác.
-
----
-
----
 
 **UC-08: Chuyển khoản nội địa**
 
@@ -594,6 +565,22 @@ usecaseDiagram
 
 ---
 
+**UC-11: Xem danh sách người dùng (Admin)**
+
+- **Actor:** Admin
+- **Tiền điều kiện:** Đã đăng nhập với quyền admin
+- **Luồng chính:**
+  1. Admin truy cập giao diện quản trị.
+  2. Hệ thống truy vấn danh sách người dùng.
+  3. Hiển thị danh sách, trạng thái, thao tác quản lý.
+- **Luồng phụ:** Lọc, tìm kiếm, phân trang.
+- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
+- **Bảo mật:** Phân quyền, logging thao tác.
+
+
+
+---
+
 **UC-12: Duyệt tài khoản (Admin)**
 
 - **Actor:** Admin
@@ -617,6 +604,21 @@ usecaseDiagram
   2. Backend cập nhật trạng thái từ chối.
   3. Thông báo kết quả.
 - **Luồng phụ:** Tài khoản đã bị từ chối trước đó.
+- **Ngoại lệ:** Lỗi kết nối, session hết hạn.
+- **Bảo mật:** Phân quyền, logging thao tác.
+
+---
+---
+
+**UC-14: Khóa/Mở khóa tài khoản (Admin)**
+
+- **Actor:** Admin
+- **Tiền điều kiện:** Đã đăng nhập với quyền admin
+- **Luồng chính:**
+  1. Admin thao tác khóa/mở khóa tài khoản trên giao diện.
+  2. Backend cập nhật trạng thái tài khoản.
+  3. Thông báo kết quả.
+- **Luồng phụ:** Tài khoản đã bị khóa/mở khóa trước đó.
 - **Ngoại lệ:** Lỗi kết nối, session hết hạn.
 - **Bảo mật:** Phân quyền, logging thao tác.
 
