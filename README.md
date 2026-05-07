@@ -1,21 +1,49 @@
-# NLP.ipynb – Báo cáo kết quả & giải thích code/ tham số (2026-05-07)
+# NLP.ipynb – Báo cáo chi tiết (dùng để vấn đáp/đánh giá) – 2026-05-07
 
 Notebook: `NLP.ipynb`  
-Bài toán: **phân loại văn bản tiếng Việt theo chuyên mục (category)** trên dữ liệu `vnexpress.csv`.
+Bài toán: **Phân loại văn bản tiếng Việt theo chuyên mục (category)** từ báo VnExpress.  
+Dữ liệu đầu vào: `vnexpress.csv` (tải từ Kaggle dataset `ntkhoi2005/mydata`).  
+Đầu ra mong muốn: Với mỗi bài viết (cột `content`), dự đoán `category`.
 
 ---
 
-## 0) Môi trường & thư viện
+## 0) Mục tiêu học thuật & lý do chọn hướng giải
 
-### Cell: Cài underthesea
+### 0.1 Vì sao đây là bài toán NLP “kinh điển”?
+Phân loại văn bản (text classification) là bài toán tiêu chuẩn trong NLP, trong đó:
+- **Đầu vào**: chuỗi ký tự (văn bản tự nhiên), nhiễu, độ dài thay đổi.
+- **Đầu ra**: nhãn rời rạc (chuyên mục).
+- Khó ở chỗ: phải biến văn bản thành dạng số (vector) rồi mới huấn luyện mô hình.
+
+### 0.2 Vì sao cần so sánh nhiều phương pháp?
+Bạn triển khai 3 nhóm:
+1) **Bag-of-words/TF‑IDF + mô hình tuyến tính** (LR, NB, SVM)  
+2) **Word embedding (FastText) + mô hình tuyến tính**  
+3) **Deep learning (LSTM)**  
+
+Mục tiêu của so sánh:
+- Tìm baseline mạnh, nhanh, dễ giải thích (phù hợp vấn đáp).
+- Quan sát vì sao mô hình “phức tạp hơn” chưa chắc tốt hơn nếu chưa tối ưu.
+
+---
+
+## 1) Chuẩn bị môi trường & thư viện
+
+### 1.1 Cài `underthesea`
+**Code**
 ```python
 !pip install underthesea
 ```
-**Kết quả chạy (stdout):**
-- `Requirement already satisfied: underthesea ... (9.4.0)`  
-→ underthesea đã được cài sẵn trên Colab.
 
-### Cell: Import
+**Kết quả chạy**
+- `Requirement already satisfied: underthesea (9.4.0)`
+
+**Vì sao cần underthesea?**
+- Tiếng Việt là ngôn ngữ **tách từ theo khoảng trắng không chính xác** (ví dụ: “giáo sư” gồm 2 tiếng nhưng 1 từ).
+- `underthesea.word_tokenize(format="text")` tạo token dạng `giáo_sư`, giúp mô hình học đúng đơn vị từ.
+
+### 1.2 Import
+**Code**
 ```python
 import pandas as pd
 import re
@@ -31,82 +59,77 @@ from sklearn.svm import LinearSVC
 from underthesea import word_tokenize
 from tqdm import tqdm
 ```
-**Ý nghĩa:**
-- `train_test_split`: chia train/test
-- `TfidfVectorizer`: biến văn bản → vector TF‑IDF
-- `LogisticRegression`, `MultinomialNB`, `LinearSVC`: 3 mô hình baseline
-- `accuracy_score`, `classification_report`, `confusion_matrix`: đánh giá mô hình
-- `word_tokenize`: tách từ tiếng Việt
-- `tqdm`: progress bar cho `.progress_apply`
+
+**Vì sao dùng scikit-learn?**
+- Có sẵn pipeline cho TF‑IDF và mô hình tuyến tính rất mạnh cho text classification.
+- Dễ tái lập, dễ giải thích về mặt toán (trọng số, siêu phẳng, regularization).
 
 ---
 
-## 1) Lấy dữ liệu từ Kaggle
+## 2) Lấy dữ liệu từ Kaggle (và lưu ý bảo mật)
 
-### Cell: Upload kaggle.json
+### 2.1 Upload `kaggle.json`
+**Code**
 ```python
 from google.colab import files
 files.upload()
 ```
-**Kết quả chạy:**
-- In ra UI upload file và `Saving kaggle.json to kaggle.json`
-- Output có chứa nội dung `{"username": "...", "key":"..."}` (NHẠY CẢM).
 
-> Cảnh báo: Không nên để key trong notebook public. Hãy xoá output cell và rotate key trên Kaggle.
+**Kết quả chạy**
+- `Saving kaggle.json to kaggle.json`
+- Output có in ra key.
 
-### Cell: Cấu hình thư mục Kaggle
+> **Cảnh báo quan trọng:** notebook của bạn đang lộ Kaggle API key trong output. Khi nộp bài/đẩy GitHub nên:
+> - Xóa output cell đó
+> - Rotate key trên Kaggle
+
+### 2.2 Cấu hình Kaggle
+**Code**
 ```python
 !mkdir -p ~/.kaggle
 !cp kaggle.json ~/.kaggle/
 !chmod 600 ~/.kaggle/kaggle.json
 ```
-**Ý nghĩa tham số/lệnh:**
-- `mkdir -p`: tạo thư mục nếu chưa có
-- `chmod 600`: chỉ user hiện tại được đọc/ghi key (Kaggle yêu cầu).
 
-### Cell: Download dataset
+**Giải thích**
+- Kaggle CLI yêu cầu file `~/.kaggle/kaggle.json` có quyền truy cập an toàn.
+
+### 2.3 Tải & giải nén dataset
+**Code**
 ```python
 !kaggle datasets download -d ntkhoi2005/mydata
-```
-**Kết quả chạy (stdout):**
-- `Downloading mydata.zip ... 100% 69.1M/69.1M`
-- Có link dataset.
-
-### Cell: Giải nén
-```python
 !unzip mydata.zip
 ```
-**Kết quả chạy:**
+
+**Kết quả chạy**
+- `Downloading mydata.zip ... 100% 69.1M/69.1M`
 - Giải nén ra `vnexpress.csv`
 
 ---
 
-## 2) Load dữ liệu
+## 3) Nạp dữ liệu & chọn đặc trưng
 
-### Cell: đọc CSV và chọn cột
+### 3.1 Load và giữ 2 cột quan trọng
+**Code**
 ```python
 df = pd.read_csv("vnexpress.csv", encoding="utf-8-sig")
-df.head()
-
-# Sử dụng cột content với category
 df = df[['content', 'category']].dropna()
 tqdm.pandas()
 ```
 
-**Ý nghĩa tham số:**
-- `encoding="utf-8-sig"`: xử lý file có BOM (hay gặp ở CSV xuất từ Excel)
-- `[['content','category']]`: chỉ giữ nội dung và nhãn
-- `.dropna()`: bỏ dòng thiếu dữ liệu
-- `tqdm.pandas()`: bật progress_apply
+**Vì sao chỉ dùng `content` và `category`?**
+- Đây là dạng tối thiểu của bài toán phân loại: văn bản → nhãn.
+- Giảm yếu tố phụ (title, tags…) để tập trung vào NLP cơ bản.
 
-**Kết quả chạy:**
-- `df.head()` hiển thị vài dòng đầu.
+**Ý nghĩa `encoding="utf-8-sig"`**
+- CSV có thể chứa BOM, đọc bằng utf‑8 thường sẽ lỗi ký tự đầu dòng.
 
 ---
 
-## 3) Tiền xử lý (Preprocessing)
+## 4) Tiền xử lý (Preprocessing) – vì sao phải làm và vì sao làm như vậy?
 
-### Cell: định nghĩa hàm clean & tokenize & preprocess
+### 4.1 Code tiền xử lý
+**Code (nguyên bản notebook)**
 ```python
 def clean_basic_text(x):
     if pd.isna(x):
@@ -118,15 +141,7 @@ def clean_basic_text(x):
 def vi_tokenize(text):
     return word_tokenize(text, format="text")
 
-VI_STOPWORDS = {
-    "và", "là", "của", "có", "cho", "với", "trong", "được", "một", "những", "các",
-    "đang", "này", "đó", "khi", "để", "về", "trên", "ra", "tại", "từ", "hay", "thì",
-    "sẽ", "đã", "bị", "theo", "cũng", "như", "đến", "sau", "trước", "nên", "nếu",
-    "vì", "do", "ở", "rằng", "rất", "hơn", "ít", "nhiều", "vẫn", "mới", "lại",
-    "đây", "kia", "ấy", "cùng", "từng", "mỗi", "thêm", "nữa", "vào", "qua",
-    "giữa", "còn", "chỉ", "tới", "sự", "việc", "người", "ông", "bà", "anh", "chị", "em",
-    "tôi", "ta", "họ", "không", "nhưng", "năm", "ngày", "tháng"
-}
+VI_STOPWORDS = {...}
 
 def preprocess_text(text):
     text = clean_basic_text(text).lower()
@@ -156,44 +171,39 @@ def preprocess_text(text):
 df['clean_text'] = df['content'].progress_apply(preprocess_text)
 ```
 
-**Kết quả chạy:**
-- Có progress bar:
-  - `100%|██████████| 43490/43490 [26:15<00:00, 27.60it/s]`
+**Kết quả chạy**
+- Progress: `100%|██████████| 43490/43490 [26:15<00:00, 27.60it/s]`
 
-**Giải thích chi tiết các tham số/regex:**
-- `re.sub(r"\s+", " ", x)`: chuẩn hoá nhiều khoảng trắng thành 1 khoảng trắng.
-- `.lower()`: đưa về chữ thường để giảm số lượng từ khác nhau do viết hoa/thường.
-- `r"http\S+|www\.\S+"`: xoá URL.
-- `r"[^0-9a-zA-ZÀ-ỹ_\s]"`: xoá ký tự không phải chữ/số/dấu tiếng Việt/underscore/khoảng trắng.
-- `word_tokenize(..., format="text")`: underthesea trả token theo dạng chuỗi có dấu `_` cho từ ghép, ví dụ: `giáo_sư`.
-- `len(tok) < 2 and not tok.isdigit()`: bỏ token 1 ký tự (trừ khi là số).
-- `tok in VI_STOPWORDS`: bỏ stopword.
+### 4.2 Giải thích “tại sao dùng cái này, tại sao không dùng cái kia”
 
-### Cell: lưu file clean
-```python
-df.to_csv("vnexpress_clean.csv", index=False)
-```
+#### (A) Lowercase (`.lower()`)
+- **Tại sao:** giảm số lượng từ vựng; “Việt Nam” và “việt nam” coi như 1.
+- **Đổi lại:** mất thông tin viết hoa (đôi khi phân biệt tên riêng). Nhưng với phân loại chủ đề, lợi > hại.
 
-### Cell: đọc lại file clean (khi đã có sẵn)
-```python
-df = pd.read_csv("vnexpress_clean.csv", encoding="utf-8-sig")
-df.head()
+#### (B) Xóa URL
+- **Tại sao:** link thường không mang nghĩa chủ đề, chủ yếu gây nhiễu.
 
-df = df[['content', 'category', 'clean_text']].dropna()
-tqdm.pandas()
-```
+#### (C) Regex giữ `0-9a-zA-ZÀ-ỹ_`
+- **Tại sao giữ dấu tiếng Việt:** tiếng Việt có dấu, mất dấu sẽ làm nhập nhằng (“hoa” vs “hóa”).
+- **Tại sao giữ `_`:** token của underthesea dùng `_` nối từ ghép (`giáo_sư`), nếu xóa `_` sẽ phá token.
+- **Tại sao vẫn giữ số:** số có thể là đặc trưng (U23, 2024, tỷ số…). Tuy nhiên số cũng có thể gây nhiễu; đây là điểm có thể cải tiến.
 
-### Cell: xem df.head()
-Notebook của bạn hiển thị:
-- `rows`: 43364
-- `category`: 26 lớp (trước khi lọc min_samples)
-- `clean_text`: dạng đã tokenize.
+#### (D) Tokenize tiếng Việt (`underthesea.word_tokenize`)
+- **Tại sao:** với tiếng Việt, bag-of-words hoạt động tốt nếu tách đúng từ ghép.
+- **Nếu không tokenize:** TF‑IDF sẽ coi mỗi “tiếng” là token → giảm khả năng phân loại.
+
+#### (E) Stopwords thủ công
+- **Tại sao:** loại từ rất phổ biến (và, là, của...) giúp TF‑IDF tập trung vào từ mang nội dung.
+- **Tại sao thủ công lại có rủi ro:** danh sách có thể thiếu (nhiều từ chức năng còn sót), hoặc loại nhầm từ hữu ích theo ngữ cảnh.
+
+#### (F) Loại token 1 ký tự
+- **Tại sao:** ký tự đơn thường là nhiễu (a, b, x...), trừ số.
 
 ---
 
-## 4) Lọc lớp ít mẫu
+## 5) Lọc lớp ít dữ liệu – tại sao cần?
 
-### Cell
+**Code**
 ```python
 min_samples = 50
 counts = df['category'].value_counts()
@@ -202,15 +212,21 @@ valid_classes = counts[counts >= min_samples].index
 df = df[df['category'].isin(valid_classes)]
 ```
 
-**Ý nghĩa tham số:**
-- `min_samples = 50`: chỉ giữ các category có >= 50 mẫu.
-  - Mục tiêu: giảm overfit/đánh giá ảo do lớp quá ít.
+**Tại sao làm bước này?**
+- Nếu một lớp chỉ vài mẫu, mô hình dễ:
+  - học “thuộc lòng” (overfit),
+  - hoặc không học được gì → đánh giá không ổn định.
+- Đặt ngưỡng 50 là một cách “dọn dữ liệu” hợp lý cho baseline.
+
+**Trade-off**
+- Mất các lớp hiếm → mô hình không còn tổng quát cho toàn bộ 26 lớp ban đầu.
+- Nhưng giúp bài toán “đủ dữ liệu” để so sánh mô hình công bằng.
 
 ---
 
-## 5) Chia train/test
+## 6) Chia train/test – ý nghĩa tham số & ảnh hưởng kết quả
 
-### Cell
+**Code**
 ```python
 X_train, X_test, y_train, y_test = train_test_split(
     df['clean_text'], df['category'],
@@ -219,15 +235,20 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 ```
 
-**Ý nghĩa tham số:**
-- `test_size=0.2`: 80% train, 20% test
-- `random_state=42`: cố định ngẫu nhiên để lần chạy sau ra cùng kết quả.
+**Ý nghĩa**
+- `test_size=0.2`: giữ 20% để kiểm tra “khả năng tổng quát hóa”.
+- `random_state=42`: đảm bảo tái lập kết quả.
+
+**Điểm cần lưu ý khi vấn đáp**
+- Bạn **chưa dùng `stratify`**. Nếu dữ liệu lệch lớp, test có thể thiếu/ít mẫu của lớp nhỏ.
+- Khi giáo viên hỏi “tại sao kết quả có thể dao động?”, bạn trả lời:
+  - vì split ngẫu nhiên không stratify → phân phối nhãn có thể đổi.
 
 ---
 
-## 6) TF‑IDF
+## 7) TF‑IDF – vì sao chọn TF‑IDF và ý nghĩa tham số
 
-### Cell
+### 7.1 Code TF‑IDF
 ```python
 vectorizer = TfidfVectorizer(max_features=2000)
 
@@ -235,27 +256,38 @@ X_train_tfidf = vectorizer.fit_transform(X_train)
 X_test_tfidf = vectorizer.transform(X_test)
 ```
 
-**Ý nghĩa tham số:**
-- `max_features=2000`: chỉ giữ 2000 từ (features) quan trọng nhất theo tần suất / thống kê của vectorizer.
-- `fit_transform(train)`: học vocabulary + idf từ TRAIN và biến đổi.
-- `transform(test)`: chỉ biến đổi theo vocabulary train (tránh leakage).
+### 7.2 Vì sao dùng TF‑IDF?
+- **TF (term frequency)**: từ xuất hiện nhiều trong văn bản có thể quan trọng.
+- **IDF (inverse document frequency)**: từ xuất hiện quá phổ biến toàn bộ tập thì ít phân biệt (ví dụ “hôm nay”, “cho biết”) → bị giảm trọng số.
+- TF‑IDF đặc biệt mạnh cho:
+  - phân loại chủ đề,
+  - dữ liệu văn bản dài (bài báo),
+  - mô hình tuyến tính (SVM/LR).
+
+### 7.3 Ý nghĩa tham số `max_features=2000`
+- Chỉ giữ top 2000 từ quan trọng nhất (theo thống kê nội bộ của vectorizer).
+- **Tại sao cần:** giảm chiều, tăng tốc, giảm overfitting.
+- **Tại sao có thể làm giảm chất lượng:** 2000 có thể chưa đủ cho nhiều lớp; từ khóa phân biệt lớp nhỏ có thể bị loại.
+
+### 7.4 Vì sao `fit_transform` trên train, `transform` trên test?
+- Tránh **data leakage**:
+  - Nếu học IDF trên toàn bộ dữ liệu (cả test), bạn đã “nhìn trước” test → kết quả ảo.
 
 ---
 
-## 7) Huấn luyện mô hình cổ điển và kết quả
+## 8) Mô hình 1: Logistic Regression – vì sao phù hợp và giải thích kết quả
 
-### 7.1 Logistic Regression
-
-**Code**
+### 8.1 Code train
 ```python
 lr_model = LogisticRegression(max_iter=200)
 lr_model.fit(X_train_tfidf, y_train)
 ```
 
-**Ý nghĩa tham số**
-- `max_iter=200`: số vòng lặp tối đa của solver để hội tụ (vì TF‑IDF nhiều chiều dễ cần tăng).
+### 8.2 Ý nghĩa tham số `max_iter=200`
+- Logistic Regression cần tối ưu hàm loss; với dữ liệu sparse nhiều chiều có thể cần nhiều vòng để hội tụ.
+- Nếu `max_iter` nhỏ, có thể cảnh báo chưa hội tụ → giảm chất lượng.
 
-**Kết quả evaluate (code)**
+### 8.3 Code evaluate + kết quả
 ```python
 y_pred_lr = lr_model.predict(X_test_tfidf)
 
@@ -263,25 +295,38 @@ print("Logistic Accuracy:", accuracy_score(y_test, y_pred_lr))
 print(classification_report(y_test, y_pred_lr))
 ```
 
-**Kết quả chạy (trích đúng notebook)**
+**Kết quả notebook**
 - `Logistic Accuracy: 0.8984167340806657`
-- Báo cáo (classification_report) có các lớp như: Bất động sản, Công nghệ, Du lịch, ... Đời sống  
-  (Notebook của bạn hiển thị đầy đủ với precision/recall/f1-score).
+
+### 8.4 Giải thích tại sao LR cao (~0.898)
+- Với TF‑IDF, quan hệ giữa từ khóa và chủ đề thường gần tuyến tính:
+  - có từ “bàn thắng”, “hlv” → Thể thao
+  - có từ “bệnh viện”, “triệu chứng” → Sức khỏe
+- LR học trọng số cho từng feature → dễ bắt từ khóa chủ đề.
+
+### 8.5 Tại sao một số lớp recall thấp (ví dụ “Công nghệ”)?
+Trong report của bạn (Logistic):
+- “Công nghệ”: recall ~ 0.51
+Giải thích khi vấn đáp:
+- Từ vựng của “Công nghệ” chồng lấn với “Khoa học công nghệ”.
+- Số lượng mẫu của “Công nghệ” nhỏ hơn nhiều lớp lớn → mô hình ít học pattern.
+- `max_features=2000` có thể loại mất từ khóa đặc trưng của lớp nhỏ.
 
 ---
 
-### 7.2 Naive Bayes (MultinomialNB)
+## 9) Mô hình 2: Multinomial Naive Bayes – vì sao thấp hơn rõ?
 
-**Code**
+### 9.1 Code train
 ```python
 nb_model = MultinomialNB()
 nb_model.fit(X_train_tfidf, y_train)
 ```
 
-**Ý nghĩa tham số**
-- `MultinomialNB()` không set tham số → dùng mặc định `alpha=1.0` (Laplace smoothing).
+### 9.2 Ý nghĩa (mặc định) `alpha=1.0`
+- Smoothing để tránh xác suất 0 cho từ chưa thấy trong lớp.
+- Nếu alpha quá lớn → làm “mềm” quá mạnh → giảm phân biệt.
 
-**Kết quả evaluate**
+### 9.3 Evaluate + kết quả
 ```python
 y_pred_nb = nb_model.predict(X_test_tfidf)
 
@@ -289,25 +334,35 @@ print("NB Accuracy:", accuracy_score(y_test, y_pred_nb))
 print(classification_report(y_test, y_pred_nb))
 ```
 
-**Kết quả chạy**
+**Kết quả notebook**
 - `NB Accuracy: 0.8122038599329712`
+
+### 9.4 Vì sao NB thấp hơn LR/SVM?
+Giải thích chuẩn khi vấn đáp:
+- NB giả định các feature độc lập có điều kiện theo lớp (conditional independence).
+- Văn bản báo chí có nhiều từ đi kèm theo ngữ cảnh; độc lập hóa làm mất cấu trúc phụ thuộc.
+- NB thường mạnh khi:
+  - dữ liệu rất lớn,
+  - từ khóa lớp cực kỳ đặc trưng,
+  - hoặc bài toán spam/ham.
+- Với nhiều lớp gần nhau (Thời sự/Thế giới/Pháp luật/Đời sống), NB dễ nhầm.
 
 ---
 
-### 7.3 Linear SVM (LinearSVC) – tốt nhất của TF‑IDF
+## 10) Mô hình 3: Linear SVM – vì sao tốt nhất?
 
-**Code**
+### 10.1 Code train
 ```python
 svm_model = LinearSVC()
 svm_model.fit(X_train_tfidf, y_train)
 ```
 
-**Ý nghĩa tham số**
-- `LinearSVC()` dùng mặc định:
-  - `C=1.0`: hệ số regularization (C lớn → ít regularize hơn)
-  - loss/penalty mặc định phù hợp phân loại tuyến tính trên data sparse.
+### 10.2 Vì sao Linear SVM hợp với TF‑IDF?
+- TF‑IDF tạo vector thưa (sparse) chiều cao.
+- Linear SVM tìm siêu phẳng phân tách với **margin lớn nhất** → thường tổng quát hóa tốt.
+- Trong text classification, Linear SVM thường là “king of baselines”.
 
-**Kết quả evaluate**
+### 10.3 Evaluate + kết quả
 ```python
 y_pred_svm = svm_model.predict(X_test_tfidf)
 
@@ -315,57 +370,45 @@ print("SVM Accuracy:", accuracy_score(y_test, y_pred_svm))
 print(classification_report(y_test, y_pred_svm))
 ```
 
-**Kết quả chạy**
-- `SVM Accuracy: 0.9013059054663123`
+**Kết quả notebook**
+- `SVM Accuracy: 0.9013059054663123` ✅ cao nhất trong notebook
+
+### 10.4 Vì sao SVM nhỉnh hơn LR?
+- LR tối ưu log-loss (xác suất), SVM tối ưu hinge-loss (margin).
+- Với dữ liệu có nhiều lớp gần nhau, margin-based đôi khi tách tốt hơn.
+- Chênh lệch nhỏ (~0.003) là bình thường: cả hai đều mạnh.
 
 ---
 
-## 8) Confusion Matrix
+## 11) Confusion Matrix – đọc thế nào và dùng để trả lời “tại sao nhầm”?
 
-### Logistic
+### 11.1 Code
 ```python
 print(confusion_matrix(y_test, y_pred_lr))
-```
-**Kết quả chạy:** notebook in ma trận 2D (15x15 theo các lớp còn lại sau lọc).
-
-### Naive Bayes
-```python
 print(confusion_matrix(y_test, y_pred_nb))
-```
-
-### SVM
-```python
 print(confusion_matrix(y_test, y_pred_svm))
 ```
 
-**Ghi chú quan trọng**
-- `confusion_matrix` trả về ma trận theo **thứ tự nhãn** nội bộ (sorted labels) nếu bạn không truyền `labels=...`.
-- Nếu muốn đọc rõ “hàng/cột là lớp nào”, nên làm:
-```python
-labels = sorted(df['category'].unique())
-cm = confusion_matrix(y_test, y_pred_svm, labels=labels)
-```
+### 11.2 Khi giáo viên hỏi: “Nhầm là nhầm cái gì?”
+Bạn cần giải thích nguyên lý:
+- Confusion matrix: hàng = nhãn thật, cột = nhãn dự đoán.
+- Nhìn ô ngoài đường chéo chính → các cặp lớp hay nhầm.
+
+### 11.3 Lý do nhầm thường gặp (theo b���n chất dữ liệu)
+Dù notebook chưa map label-index, nhưng theo classification_report của bạn:
+- “Công nghệ” dễ nhầm sang “Khoa học công nghệ”: từ khóa giống (AI, chip, dữ liệu…).
+- “Pháp luật” nhầm sang “Thời sự”: bài pháp đình có văn phong thời sự.
+- “Đời sống” nhầm sang “Sức khỏe/Giải trí/Giáo dục”: “Đời sống” là nhãn rộng, nội dung dễ lấn.
+
+> Nếu muốn trình bày chuyên nghiệp, nên tạo danh sách `labels` và vẽ heatmap.
 
 ---
 
-## 9) FastText (unsupervised) + SVM
+## 12) FastText + SVM – vì sao thấp hơn TF‑IDF?
 
-### Cài thư viện
+### 12.1 Cài đặt & train unsupervised
 ```python
 !pip install fasttext
-```
-**Kết quả:** `Requirement already satisfied: fasttext (0.9.3)`
-
-### Chuẩn bị train text
-```python
-with open("train_ft.txt", "w", encoding="utf-8") as f:
-    for text in df['clean_text']:
-        f.write(text + "\n")
-```
-**Ý nghĩa:** ghi mỗi dòng là một văn bản để FastText train unsupervised.
-
-### Train embedding
-```python
 import fasttext
 
 ft_model = fasttext.train_unsupervised(
@@ -376,88 +419,53 @@ ft_model = fasttext.train_unsupervised(
 )
 ```
 
-**Ý nghĩa tham số**
-- `model="skipgram"`: học embedding theo skip-gram (thường tốt cho từ hiếm hơn CBOW).
-- `dim=100`: số chiều vector từ.
-- `epoch=5`: số vòng lặp qua dữ liệu.
+**Vì sao dùng FastText?**
+- FastText học embedding từ từ/subword.
+- Có lợi cho tiếng Việt khi có nhiều từ hiếm, biến thể, và từ ghép.
 
-### Sentence embedding = trung bình vector từ
+### 12.2 Sentence embedding bằng trung bình vector từ
 ```python
 def sentence_to_vec(text):
     words = text.split()
     vectors = [ft_model.get_word_vector(w) for w in words if w.strip() != ""]
     return np.mean(vectors, axis=0) if vectors else np.zeros(50)
-
-X_ft = np.array([sentence_to_vec(t) for t in df['clean_text']])
 ```
 
-**LƯU Ý BUG**
-- Bạn train `dim=100` nhưng `np.zeros(50)` → sai dimension. Đúng phải là:
-  - `np.zeros(100)`  
-Nếu không có câu rỗng thì chưa phát lỗi, nhưng vẫn nên sửa.
+**Giải thích học thuật**
+- Đây là “mean pooling”: coi văn bản là tập từ, lấy trung bình để ra vector cố định.
 
-### Train/test + SVM
+**Nhược điểm chính (vì sao accuracy thấp)**
+- Trung bình vector làm mất thông tin:
+  - mất trọng số: từ quan trọng/hiếm bị “pha loãng”
+  - mất phân biệt cấu trúc
+- TF‑IDF thì nhấn mạnh từ hiếm có tính phân loại mạnh → nên thắng.
+
+**Lưu ý bug**
+- `dim=100` nhưng `np.zeros(50)` sai chiều. Đúng: `np.zeros(100)`.
+
+### 12.3 Kết quả
 ```python
-X_train_ft, X_test_ft, y_train_ft, y_test_ft = train_test_split(
-    X_ft, df['category'], test_size=0.2, random_state=42
-)
-
-svm_ft = LinearSVC()
-svm_ft.fit(X_train_ft, y_train_ft)
-
 print("FastText + SVM:", accuracy_score(y_test_ft, svm_ft.predict(X_test_ft)))
 ```
-
-**Kết quả chạy**
+**Kết quả notebook**
 - `FastText + SVM: 0.8710273893447359`
 
 ---
 
-## 10) LSTM (TensorFlow/Keras)
+## 13) LSTM – vì sao thấp hơn và phân tích sâu theo “bias/variance”
 
-### Cài tensorflow
+### 13.1 Tokenization & padding
 ```python
-!pip install tensorflow
-```
-**Kết quả:** `Requirement already satisfied: tensorflow (2.20.0)`
-
-### Tokenizer + padding
-```python
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-
 tokenizer = Tokenizer(num_words=10000)
-tokenizer.fit_on_texts(df['clean_text'])
-
-X_seq = tokenizer.texts_to_sequences(df['clean_text'])
+...
 X_pad = pad_sequences(X_seq, maxlen=200)
 ```
 
-**Ý nghĩa tham số**
-- `Tokenizer(num_words=10000)`: chỉ giữ top 10k từ phổ biến nhất.
-- `pad_sequences(..., maxlen=200)`: cắt hoặc pad mỗi văn bản về độ dài 200 token.
+**Vì sao dùng Tokenizer + padding?**
+- Neural network cần input số có kích thước cố định → padding về 200 token.
 
-### LabelEncoder
+### 13.2 Kiến trúc LSTM
 ```python
-from sklearn.preprocessing import LabelEncoder
-
-le = LabelEncoder()
-y_encoded = le.fit_transform(df['category'])
-```
-**Ý nghĩa:** chuyển nhãn string → số nguyên 0..K-1.
-
-### Split
-```python
-X_train_seq, X_test_seq, y_train_seq, y_test_seq = train_test_split(
-    X_pad, y_encoded, test_size=0.2, random_state=42
-)
-```
-
-### Build model
-```python
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Embedding, LSTM, Dense
-
 model = Sequential([
     Embedding(10000, 128, input_length=200),
     LSTM(64),
@@ -466,76 +474,92 @@ model = Sequential([
 ])
 ```
 
-**Ý nghĩa tham số**
-- `Embedding(10000, 128, ...)`
-  - 10000: vocab size (phù hợp Tokenizer num_words)
-  - 128: embedding_dim
-  - `input_length=200`: (deprecated warning) chiều dài sequence.
-- `LSTM(64)`: 64 units.
-- `Dense(64, relu)`: fully-connected layer.
-- `Dense(num_classes, softmax)`: phân loại đa lớp.
+**Giải thích**
+- `Embedding`: học vector từ đầu (random init).
+- `LSTM`: học phụ thuộc theo chuỗi.
+- `softmax`: phân loại đa lớp.
 
-**Kết quả cảnh báo**
-- Warning: `input_length is deprecated` → có thể bỏ.
+### 13.3 Train/Eval và kết quả
+Train log:
+- Epoch 1 accuracy ~ 0.4594
+- Epoch 5 accuracy ~ 0.8533 (train)
 
-### Compile & train
-```python
-model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-model.fit(X_train_seq, y_train_seq, epochs=5, batch_size=64)
-```
-
-**Ý nghĩa tham số**
-- `sparse_categorical_crossentropy`: dùng khi label là số nguyên (không one-hot).
-- `adam`: optimizer phổ biến.
-- `epochs=5`: số vòng train.
-- `batch_size=64`: kích thước batch.
-
-**Kết quả chạy (log notebook)**
-- Epoch 1: accuracy ~ 0.4594
-- Epoch 5: accuracy ~ 0.8533 (train)
-
-### Evaluate
-```python
-loss, acc = model.evaluate(X_test_seq, y_test_seq)
-print("LSTM:", acc)
-```
-
-**Kết quả chạy**
+Test:
 - `LSTM: 0.8012250065803528`
+
+### 13.4 Vì sao LSTM thua SVM TF‑IDF trong notebook này?
+Giải thích “đúng chất vấn đáp”:
+1) **Embedding học từ đầu** cần nhiều dữ liệu và tuning để vượt baseline.
+2) Bạn chỉ train `epochs=5` → có thể chưa đủ hội tụ.
+3) Không thấy dùng:
+   - dropout / regularization
+   - early stopping
+   - class weights (nếu lệch lớp)
+4) LSTM mạnh khi cần ngữ cảnh/chuỗi; nhưng bài phân loại chủ đề báo chí thường “từ khóa” đã đủ → TF‑IDF + tuyến tính rất hiệu quả.
+5) Với tiếng Việt, giải pháp SOTA thường là Transformer (PhoBERT) hơn là LSTM thuần.
 
 ---
 
-## 11) Lưu mô hình tốt nhất (TF‑IDF + SVM)
+## 14) Lưu mô hình – vì sao lưu cả vectorizer và model?
 
-### Cell
+**Code**
 ```python
-import joblib
 joblib.dump(vectorizer, "tfidf.pkl")
 joblib.dump(svm_model, "svm.pkl")
 ```
 
-**Kết quả chạy**
-- Output: `['svm.pkl']` (joblib dump trả về list tên file)
-
-**Ý nghĩa**
-- `tfidf.pkl`: lưu vectorizer (vocabulary + idf)
-- `svm.pkl`: lưu mô hình SVM
-- Khi predict lại phải load cả 2.
+**Tại sao phải lưu cả hai?**
+- Nếu chỉ lưu `svm.pkl` mà không lưu `tfidf.pkl`, khi predict bạn không có:
+  - vocabulary
+  - idf weights
+→ Vector mới sẽ không khớp chiều với model.
 
 ---
 
-## 12) Tổng kết kết quả (theo notebook)
+## 15) Tổng hợp kết quả (đúng theo notebook)
 
-- TF‑IDF + Logistic Regression: **0.8984167340806657**
-- TF‑IDF + MultinomialNB: **0.8122038599329712**
-- TF‑IDF + LinearSVC (SVM): **0.9013059054663123**  ✅ cao nhất trong notebook
-- FastText (mean embedding) + SVM: **0.8710273893447359**
-- LSTM: **0.8012250065803528**
+| Phương pháp | Accuracy |
+|---|---:|
+| TF‑IDF + Logistic Regression | **0.8984167340806657** |
+| TF‑IDF + MultinomialNB | **0.8122038599329712** |
+| TF‑IDF + LinearSVC (SVM) | **0.9013059054663123** ✅ |
+| FastText (mean embedding) + SVM | **0.8710273893447359** |
+| LSTM | **0.8012250065803528** |
 
 ---
 
-## 13) Khuyến nghị kỹ thuật ngắn (để cải thiện thêm)
-1) Dùng `stratify=df['category']` khi split.  
-2) Tăng chất lượng TF‑IDF: thử `ngram_range=(1,2)` và tăng `max_features`.  
-3) Sửa bug FastText: `np.zeros(100)` cho đúng dim.  
-4) Nếu muốn vượt SVM: cân nhắc fine-tune **PhoBERT**.
+## 16) “Câu hỏi vấn đáp” thường gặp & gợi ý trả lời nhanh
+
+### Q1: Vì sao TF‑IDF + SVM lại mạnh?
+- Vì text classification thường tuyến tính trong không gian từ vựng.
+- SVM tối ưu margin, phù hợp vector sparse cao chiều.
+
+### Q2: Vì sao Naive Bayes thấp?
+- Giả định độc lập điều kiện làm mất tương quan từ.
+- Lớp chồng lấn từ vựng → NB nhầm nhiều.
+
+### Q3: Vì sao LSTM thua baseline?
+- Chưa dùng pretrained embedding / chưa tune đủ.
+- TF‑IDF tận dụng từ khóa tốt hơn trong bài chủ đề.
+
+### Q4: Vì sao “Công nghệ” khó?
+- Chồng lấn với “Khoa học công nghệ”.
+- Ít mẫu hơn lớp lớn.
+- `max_features=2000` có thể làm mất token đặc trưng.
+
+### Q5: Nếu nâng cấp, bạn làm gì?
+- Thử `TfidfVectorizer(ngram_range=(1,2), max_features=30000, sublinear_tf=True)`
+- Split stratified
+- Tuning `C` cho LinearSVC / class_weight
+- SOTA: fine-tune PhoBERT.
+
+---
+
+## 17) Các điểm cần sửa/hoàn thiện để bài “chắc” hơn khi nộp
+1) **Xóa/ẩn Kaggle key** trong notebook output.
+2) **Sửa bug FastText**: `np.zeros(100)`.
+3) Thêm `stratify` khi chia train/test.
+4) Lưu thêm:
+   - danh sách labels,
+   - code mapping confusion matrix → label,
+   - biểu đồ heatmap để giải thích nhầm lẫn.
